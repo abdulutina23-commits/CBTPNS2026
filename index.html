@@ -65,7 +65,7 @@
     <!-- ==================== GLOBAL TOAST CONTAINER ==================== -->
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-    <!-- ==================== GLOBAL CUSTOM MODAL (NO alert/confirm) ==================== -->
+    <!-- ==================== GLOBAL CUSTOM MODAL ==================== -->
     <div id="app-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 no-print">
         <div id="modal-dialog-box" class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden fade-in">
             <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -112,11 +112,11 @@
 
                     <div class="space-y-2 pt-2">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                            <i data-lucide="sparkles" class="w-3 h-3"></i> Fase 1 • Mode Demo Interaktif
+                            <i data-lucide="database" class="w-3 h-3"></i> Terhubung Google Apps Script & Google Sheets
                         </span>
                         <h1 class="font-heading font-bold text-2xl leading-snug">Sistem Ujian Daring & Pengawasan Terintegrasi</h1>
                         <p class="text-xs text-slate-300 leading-relaxed">
-                            Dilengkapi <strong>35 Soal Tes Diagnostik TIU CPNS (Bagian 1.5)</strong>, kontrol token oleh pengawas, autosave berversi, deteksi pindah tab, dan riwayat pembahasan lengkap.
+                            Dilengkapi <strong>35 Soal Tes Diagnostik TIU CPNS (Bagian 1.5)</strong>, kontrol token oleh pengawas, autosave langsung ke Google Sheets, deteksi pindah tab, dan riwayat pembahasan lengkap.
                         </p>
                     </div>
 
@@ -140,7 +140,7 @@
 
                 <div class="relative z-10 pt-6 mt-6 border-t border-white/10 text-[11px] text-slate-400 flex items-center justify-between">
                     <span>© 2026 SMART CBT System</span>
-                    <span class="text-emerald-400 font-semibold">v1.2 Stable</span>
+                    <span class="text-emerald-400 font-semibold">v2.0 Cloud Sync</span>
                 </div>
             </div>
 
@@ -159,7 +159,7 @@
                 <div class="mb-5">
                     <h2 id="login-heading" class="font-heading font-bold text-xl text-slate-900 dark:text-white">Masuk Portal Peserta Ujian</h2>
                     <p id="login-subheading" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis terdaftar di sistem panitia.
+                        Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis terdaftar di Google Sheets.
                     </p>
                 </div>
 
@@ -185,7 +185,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition">
+                    <button id="btn-login-submit" type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition disabled:opacity-60">
                         <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Sekarang
                     </button>
                 </form>
@@ -250,7 +250,7 @@
                 <div class="flex items-center gap-4">
                     <div id="p-avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center font-heading font-extrabold text-xl text-white shadow-lg shrink-0">P</div>
                     <div>
-                        <span class="text-[11px] uppercase tracking-wider font-semibold text-emerald-400">Peserta Terdaftar Otomatis</span>
+                        <span class="text-[11px] uppercase tracking-wider font-semibold text-emerald-400">Peserta Terdaftar di Google Sheets</span>
                         <h1 id="p-welcome-name" class="font-heading font-bold text-xl md:text-2xl">-</h1>
                         <p class="text-xs text-slate-300 mt-0.5">
                             No. Peserta: <span id="p-welcome-id" class="font-mono text-cyan-300 font-semibold">-</span> • Ruang: <span id="p-welcome-room" class="font-semibold">Lab-A</span>
@@ -297,7 +297,7 @@
 
                     <!-- Token Gate Box -->
                     <div id="participant-token-section" class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 space-y-4">
-                        <!-- Dynamically rendered by renderParticipantTokenBox() -->
+                        <!-- Rendered dynamically -->
                     </div>
                 </div>
 
@@ -393,24 +393,19 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- Connection -->
                     <span id="exam-net-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
                     </span>
-                    <!-- Autosave -->
                     <span id="exam-save-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
-                        <i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Tersimpan
+                        <i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Siap Tersimpan
                     </span>
-                    <!-- Violations -->
                     <span id="exam-viol-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         Pelanggaran: 0/3
                     </span>
-                    <!-- Timer -->
                     <div id="exam-timer-box" class="px-3.5 py-1.5 rounded-xl bg-navy-900 dark:bg-emerald-600/20 text-white dark:text-emerald-300 border border-emerald-500/40 font-mono font-bold text-sm flex items-center gap-1.5">
                         <i data-lucide="timer" class="w-4 h-4 text-amber-400"></i>
                         <span id="exam-timer-display">45:00</span>
                     </div>
-                    <!-- Mobile Nav Drawer Button -->
                     <button onclick="toggleMobileNavDrawer()" class="lg:hidden px-3 py-1.5 rounded-xl bg-cyan-600 text-white text-xs font-bold flex items-center gap-1.5">
                         <i data-lucide="grid" class="w-4 h-4"></i> Soal
                     </button>
@@ -418,7 +413,7 @@
             </div>
         </header>
 
-        <!-- Locked Overlay (If 3 violations or Admin Lock) -->
+        <!-- Locked Overlay -->
         <div id="exam-locked-overlay" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md items-center justify-center p-4">
             <div class="max-w-md w-full bg-navy-900 border border-rose-500/40 rounded-3xl p-7 text-center space-y-4 shadow-2xl">
                 <div class="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -426,10 +421,10 @@
                 </div>
                 <h2 class="font-heading font-bold text-xl text-white">Sesi Ujian Terkunci</h2>
                 <p id="exam-locked-reason" class="text-xs text-slate-300 leading-relaxed">
-                    Sesi Anda dikunci otomatis karena pelanggaran perpindahan tab mencapai batas maksimal. Jawaban Anda yang telah tersimpan tetap aman.
+                    Sesi Anda dikunci karena pelanggaran perpindahan tab mencapai batas maksimal atau dikunci oleh pengawas. Jawaban Anda tetap aman di Google Sheets.
                 </p>
                 <div class="p-3 rounded-xl bg-navy-950 border border-slate-800 text-[11px] text-slate-400">
-                    Hubungi pengawas ruang untuk verifikasi dan pembukaan kunci sesi.
+                    Hubungi pengawas ruang untuk verifikasi dan pembukaan kunci sesi. Sistem akan mengecek status buka kunci otomatis.
                 </div>
                 <div class="flex gap-2 justify-center pt-2">
                     <button onclick="logout()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold">Kembali ke Login</button>
@@ -441,9 +436,7 @@
         <div class="max-w-7xl w-full mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
             <!-- Left: Question Panel -->
             <div class="lg:col-span-8 flex flex-col gap-4">
-                <div id="question-card" class="bg-white dark:bg-navy-900 rounded-3xl p-5 md:p-7 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 flex-1">
-                    <!-- Rendered dynamically by renderCurrentQuestion() -->
-                </div>
+                <div id="question-card" class="bg-white dark:bg-navy-900 rounded-3xl p-5 md:p-7 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 flex-1"></div>
 
                 <!-- Bottom Navigation Bar -->
                 <div class="bg-white dark:bg-navy-900 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shadow-sm">
@@ -468,7 +461,6 @@
 
             <!-- Right: Navigation Grid & Camera Mini Preview -->
             <aside id="exam-nav-panel" class="hidden lg:flex lg:col-span-4 flex-col gap-4">
-                <!-- Camera Mini Preview -->
                 <div class="bg-white dark:bg-navy-900 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
                     <div class="w-24 h-16 rounded-xl bg-navy-950 overflow-hidden relative shrink-0 flex items-center justify-center border border-slate-700">
                         <video id="exam-camera-mini" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
@@ -483,7 +475,6 @@
                     </div>
                 </div>
 
-                <!-- Question Grid -->
                 <div class="bg-white dark:bg-navy-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 flex-1">
                     <div class="flex items-center justify-between">
                         <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Navigasi Nomor Soal</h3>
@@ -556,14 +547,14 @@
                         </button>
                         <div>
                             <h1 id="admin-page-title" class="font-heading font-bold text-base text-white">Dashboard</h1>
-                            <p class="text-[11px] text-slate-400">Mode Demo Fase 1 • Data In-Memory (GAS & SFU pada Fase 2 & 5)</p>
+                            <p class="text-[11px] text-slate-400">Terhubung Permanen ke Google Apps Script & Google Sheets (18 Tabel)</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistem Aktif
+                        <span id="admin-sync-badge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Aktif
                         </span>
-                        <button onclick="renderAdminSection(state.activeAdminMenu)" class="p-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-300 transition" title="Refresh Data">
+                        <button onclick="refreshAdminData(true)" class="p-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-300 transition" title="Sinkronkan Data dari Google Sheets">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -839,8 +830,41 @@
         ];
 
         /* =====================================================================
-           3. APPLICATION STATE (IN-MEMORY FASE 1)
+           3. KONFIGURASI PERMANENT GOOGLE APPS SCRIPT & APPLICATION STATE
            ===================================================================== */
+        const API_CONFIG = {
+            BASE_URL: 'https://script.google.com/macros/s/AKfycbysj3fx101WHl22KoymsCnsSUE0gMP9T1aXD-nhDwKuEzft8YQ-GXxL7he4lcrFgKk-/exec',
+            USE_BACKEND: true
+        };
+
+        /**
+         * Helper komunikasi Frontend (GitHub Pages) <-> Backend (Google Apps Script).
+         * Menggunakan Content-Type text/plain agar bebas dari blokir CORS preflight.
+         */
+        async function callApi(action, payload = {}) {
+            const authToken = sessionStorage.getItem('smart_cbt_token') || '';
+            const response = await fetch(API_CONFIG.BASE_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action, authToken, payload })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal terhubung ke server Apps Script (HTTP ${response.status})`);
+            }
+
+            const result = await response.json();
+            if (!result.ok) {
+                if (result.code === 'UNAUTHORIZED') {
+                    sessionStorage.removeItem('smart_cbt_token');
+                    logout(true);
+                }
+                throw new Error(result.error || 'Terjadi kesalahan pada server.');
+            }
+            return result;
+        }
+
         const state = {
             loginPortal: 'peserta',
             currentUser: null,
@@ -848,7 +872,6 @@
             activeAdminMenu: 'dashboard',
             proctorGridCols: 3,
 
-            // Token & Exam Settings
             settings: {
                 orgName: 'Panitia Seleksi CPNS 2026',
                 durationMinutes: 45,
@@ -857,48 +880,37 @@
                 tokenActive: false
             },
 
-            // Participant Session State
+            sessionId: null,
             currentQuestionIdx: 0,
             answers: {},
             doubts: {},
+            pendingSyncQueue: [],
             examActive: false,
             examFinished: false,
             examLocked: false,
             remainingSeconds: 45 * 60,
             timerInterval: null,
+            heartbeatInterval: null,
+            tokenPollInterval: null,
             violations: 0,
             cameraStream: null,
             cameraReady: false,
             cameraException: false,
             saveVersion: 0,
             lastResult: null,
+            _lastHistoryPayload: null,
 
-            // Demo Participants Database (Automatically updated on participant login)
-            participants: [
-                { id: '2026-TIU-001', name: 'Andi Pratama', room: 'Lab-A', status: 'Belum Dimulai', progress: 0, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '45:00', answers: {} },
-                { id: '2026-TIU-002', name: 'Siti Rahmawati', room: 'Lab-A', status: 'Sedang Berlangsung', progress: 18, camera: 'Online', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '26:15', answers: {} },
-                { id: '2026-TIU-003', name: 'Budi Santoso', room: 'Lab-A', status: 'Sedang Berlangsung', progress: 12, camera: 'Online', net: 'Online', violations: 1, locked: false, score: null, timeLeft: '31:40', answers: {} },
-                { id: '2026-TIU-004', name: 'Dewi Lestari', room: 'Lab-B', status: 'Terkunci', progress: 9, camera: 'Offline', net: 'Online', violations: 3, locked: true, score: null, timeLeft: '29:05', answers: {} },
-                { id: '2026-TIU-005', name: 'Rizky Ramadhan', room: 'Lab-B', status: 'Selesai', progress: 35, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: 145, timeLeft: '00:00', answers: {} },
-                { id: '2026-TIU-006', name: 'Nadia Kusuma', room: 'Lab-B', status: 'Sedang Berlangsung', progress: 24, camera: 'Online', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '19:50', answers: {} }
-            ],
-
-            // Staff Accounts (RBAC)
+            participants: [],
             staffAccounts: [
-                { username: 'superadmin', pass: 'ADMIN2026', name: 'Dr. H. Ahmad Fauzi', role: 'Super Admin', room: 'Semua Ruang' },
-                { username: 'admin', pass: 'ADMIN2026', name: 'Rina Oktaviani, S.Kom.', role: 'Admin Ujian', room: 'Semua Ruang' },
-                { username: 'pengawas', pass: 'PROCTOR2026', name: 'Hendra Wijaya, M.Pd.', role: 'Pengawas', room: 'Lab-A & Lab-B' }
+                { username: 'superadmin', name: 'Dr. H. Ahmad Fauzi', role: 'Super Admin', room: 'Semua Ruang' },
+                { username: 'admin', name: 'Rina Oktaviani, S.Kom.', role: 'Admin Ujian', room: 'Semua Ruang' },
+                { username: 'pengawas', name: 'Hendra Wijaya, M.Pd.', role: 'Pengawas', room: 'Lab-A & Lab-B' }
             ],
-
-            auditLogs: [
-                { time: '08:00:02', actor: 'SYSTEM', role: 'System', event: 'Inisialisasi SMART CBT (35 Soal Tes Diagnostik TIU Bagian 1.5 dimuat)', level: 'info' },
-                { time: '08:05:14', actor: '2026-TIU-005', role: 'Peserta', event: 'Rizky Ramadhan menyelesaikan ujian — Skor 145/175', level: 'info' },
-                { time: '08:12:30', actor: '2026-TIU-004', role: 'Peserta', event: 'Sesi Dewi Lestari terkunci otomatis (3× pelanggaran perpindahan tab)', level: 'danger' }
-            ]
+            auditLogs: []
         };
 
         /* =====================================================================
-           4. UTILITIES, TOAST, MODAL, THEME, AUDIT LOG
+           4. UTILITIES, TOAST, MODAL, THEME
            ===================================================================== */
         function esc(str) {
             return String(str ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -906,11 +918,6 @@
 
         function nowTime() {
             return new Date().toLocaleTimeString('id-ID', { hour12: false });
-        }
-
-        function addAuditLog(actor, role, event, level = 'info') {
-            state.auditLogs.unshift({ time: nowTime(), actor, role, event, level });
-            if (state.auditLogs.length > 120) state.auditLogs.pop();
         }
 
         function showToast(msg, type = 'info') {
@@ -925,7 +932,7 @@
             el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs font-semibold flex items-center justify-between gap-3 fade-in ${styles[type] || styles.info}`;
             el.innerHTML = `<span>${esc(msg)}</span><button onclick="this.parentElement.remove()" class="opacity-75 hover:opacity-100">✕</button>`;
             container.appendChild(el);
-            setTimeout(() => el.remove(), 3800);
+            setTimeout(() => el.remove(), 4000);
         }
 
         function openModal({ title, bodyHtml, footerHtml, icon = 'info', iconClass = 'bg-emerald-500/15 text-emerald-500', wide = false }) {
@@ -936,7 +943,9 @@
             }
             document.getElementById('modal-title').textContent = title;
             document.getElementById('modal-body').innerHTML = bodyHtml;
-            document.getElementById('modal-footer').innerHTML = footerHtml || `<button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Tutup</button>`;
+            document.getElementById('modal-footer').innerHTML = footerHtml !== undefined
+                ? footerHtml
+                : `<button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Tutup</button>`;
             const iconWrap = document.getElementById('modal-icon-wrap');
             iconWrap.className = `w-8 h-8 rounded-xl flex items-center justify-center ${iconClass}`;
             iconWrap.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
@@ -989,7 +998,7 @@
         }
 
         /* =====================================================================
-           5. AUTHENTICATION & AUTO-REGISTER PARTICIPANT
+           5. AUTHENTICATION & AUTO-REGISTER PARTICIPANT VIA GOOGLE SHEETS
            ===================================================================== */
         function setLoginPortal(portal) {
             state.loginPortal = portal;
@@ -1010,7 +1019,7 @@
                 btnP.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow';
                 btnA.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-navy-800';
                 heading.textContent = 'Masuk Portal Peserta Ujian';
-                sub.innerHTML = 'Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis tersimpan di data Admin & Super Admin.';
+                sub.innerHTML = 'Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis tersimpan ke Google Sheets.';
                 uLabel.textContent = 'Nama Lengkap Peserta';
                 uInput.placeholder = 'Contoh: Abdul Rahman Utina';
                 pInput.placeholder = 'Masukkan password: CPNS2026';
@@ -1022,7 +1031,7 @@
                 btnA.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-slate-950 shadow';
                 btnP.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-navy-800';
                 heading.textContent = 'Masuk Portal Admin & Pengawas';
-                sub.innerHTML = 'Akses manajemen peserta, kontrol token ujian, live camera monitoring, dan riwayat jawaban peserta.';
+                sub.innerHTML = 'Akses manajemen peserta, kontrol token ujian, monitoring, dan riwayat jawaban langsung dari Google Sheets.';
                 uLabel.textContent = 'Username Petugas';
                 uInput.placeholder = 'superadmin / admin / pengawas';
                 pInput.placeholder = 'Masukkan password petugas';
@@ -1045,85 +1054,82 @@
             input.type = input.type === 'password' ? 'text' : 'password';
         }
 
-        function handleLoginSubmit(e) {
+        async function handleLoginSubmit(e) {
             e.preventDefault();
             const user = document.getElementById('login-username').value.trim();
             const pass = document.getElementById('login-password').value.trim();
+            const submitBtn = document.getElementById('btn-login-submit');
 
             if (!user || !pass) {
                 showToast('Nama/Username dan password wajib diisi.', 'warning');
                 return;
             }
 
-            if (state.loginPortal === 'peserta') {
-                if (pass !== 'CPNS2026') {
-                    showToast('Password peserta salah! Gunakan password: CPNS2026', 'error');
-                    return;
-                }
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Menghubungkan ke Google Sheets...`;
+                lucide.createIcons();
+            }
 
-                // Cari peserta berdasarkan nama lengkap (case-insensitive) atau nomor peserta
-                let found = state.participants.find(p =>
-                    p.name.toLowerCase() === user.toLowerCase() || p.id.toLowerCase() === user.toLowerCase()
-                );
+            try {
+                if (state.loginPortal === 'peserta') {
+                    const res = await callApi('loginParticipant', { fullName: user, password: pass });
+                    sessionStorage.setItem('smart_cbt_token', res.authToken);
 
-                // Jika belum ada, otomatis buat dan simpan ke data Admin & Super Admin
-                if (!found) {
-                    const nextNum = String(state.participants.length + 1).padStart(3, '0');
-                    found = {
-                        id: `2026-TIU-${nextNum}`,
-                        name: user,
-                        room: 'Lab-A',
-                        status: 'Belum Dimulai',
-                        progress: 0,
-                        camera: 'Offline',
-                        net: 'Online',
-                        violations: 0,
-                        locked: false,
-                        score: null,
-                        timeLeft: `${state.settings.durationMinutes}:00`,
-                        answers: {}
-                    };
-                    state.participants.unshift(found);
-                    addAuditLog(found.id, 'SYSTEM', `Peserta baru "${found.name}" (${found.id}) otomatis tersimpan ke data Admin & Super Admin`, 'info');
-                }
+                    const p = res.user;
+                    state.currentUser = { ...p, role: 'Peserta' };
+                    state.settings.tokenActive = !!res.tokenActive;
+                    if (res.examToken) state.settings.examToken = res.examToken;
+                    if (res.durationMinutes) state.settings.durationMinutes = Number(res.durationMinutes);
 
-                // Reset state sesi lokal jika peserta berbeda yang login
-                if (!state.currentUser || state.currentUser.id !== found.id) {
                     state.examActive = false;
-                    state.examFinished = found.status === 'Selesai';
-                    state.examLocked = !!found.locked;
-                    state.answers = found.answers ? { ...found.answers } : {};
+                    state.examFinished = p.status === 'Selesai';
+                    state.examLocked = !!p.locked;
+                    state.answers = {};
                     state.doubts = {};
-                    state.violations = found.violations || 0;
+                    state.violations = p.violations || 0;
                     state.lastResult = null;
-                }
 
-                state.currentUser = { ...found, role: 'Peserta' };
-                addAuditLog(found.id, 'Peserta', `Login Portal Peserta berhasil (${found.name})`, 'info');
-                renderParticipantDashboard();
-                showView('participant');
-                showToast(`Selamat datang, ${found.name}!`, 'success');
-            } else {
-                const staff = state.staffAccounts.find(s => s.username.toLowerCase() === user.toLowerCase() && s.pass === pass);
-                if (!staff) {
-                    showToast('Username atau password petugas tidak valid.', 'error');
-                    return;
+                    const idx = state.participants.findIndex(x => x.id === p.id);
+                    if (idx >= 0) state.participants[idx] = { ...p, answers: {} };
+                    else state.participants.unshift({ ...p, answers: {} });
+
+                    renderParticipantDashboard();
+                    startParticipantTokenPolling();
+                    showView('participant');
+                    showToast(`Selamat datang, ${p.name}! Data tersimpan di Google Sheets.`, 'success');
+                } else {
+                    const res = await callApi('loginStaff', { username: user, password: pass });
+                    sessionStorage.setItem('smart_cbt_token', res.authToken);
+                    state.currentUser = { ...res.user };
+
+                    await refreshAdminData(false);
+                    renderAdminShell();
+                    showView('admin');
+                    showToast(`Login berhasil sebagai ${res.user.role}.`, 'success');
                 }
-                state.currentUser = { ...staff };
-                addAuditLog(staff.name, staff.role, 'Login Portal Admin/Pengawas berhasil', 'info');
-                renderAdminShell();
-                showView('admin');
-                showToast(`Login berhasil sebagai ${staff.role}.`, 'success');
+            } catch (err) {
+                showToast(err.message || 'Gagal login ke server.', 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> Masuk Sekarang`;
+                    lucide.createIcons();
+                }
             }
         }
 
-        function logout() {
+        async function logout(skipApi = false) {
             stopExamTimer();
+            stopHeartbeat();
+            stopParticipantTokenPolling();
             stopCameraStream();
-            if (state.currentUser) {
-                addAuditLog(state.currentUser.name || state.currentUser.id, state.currentUser.role, 'Logout dari sistem', 'info');
+            if (!skipApi && sessionStorage.getItem('smart_cbt_token')) {
+                try { await callApi('logout'); } catch (e) {}
             }
+            sessionStorage.removeItem('smart_cbt_token');
             state.examActive = false;
+            state.sessionId = null;
             state.currentUser = null;
             showView('login');
             setLoginPortal('peserta');
@@ -1133,6 +1139,45 @@
         /* =====================================================================
            6. PARTICIPANT DASHBOARD & TOKEN VERIFICATION GATE
            ===================================================================== */
+        function startParticipantTokenPolling() {
+            stopParticipantTokenPolling();
+            state.tokenPollInterval = setInterval(() => {
+                if (!state.examActive && state.currentUser && state.currentUser.role === 'Peserta') {
+                    refreshParticipantStatus(false);
+                }
+            }, 10000);
+        }
+
+        function stopParticipantTokenPolling() {
+            if (state.tokenPollInterval) {
+                clearInterval(state.tokenPollInterval);
+                state.tokenPollInterval = null;
+            }
+        }
+
+        async function refreshParticipantStatus(showFeedback = true) {
+            try {
+                const res = await callApi('getParticipantState');
+                state.settings.tokenActive = !!res.tokenActive;
+                if (res.examToken) state.settings.examToken = res.examToken;
+                if (res.durationMinutes) state.settings.durationMinutes = Number(res.durationMinutes);
+                if (res.maxViolations) state.settings.maxViolations = Number(res.maxViolations);
+
+                const p = res.user;
+                state.currentUser = { ...p, role: 'Peserta' };
+                const idx = state.participants.findIndex(x => x.id === p.id);
+                if (idx >= 0) state.participants[idx] = { ...state.participants[idx], ...p };
+                else state.participants.unshift({ ...p, answers: {} });
+
+                renderParticipantDashboard();
+                if (showFeedback) {
+                    showToast(state.settings.tokenActive ? `Token aktif: ${state.settings.examToken}` : 'Status diperbarui. Menunggu aktivasi token.', 'info');
+                }
+            } catch (err) {
+                if (showFeedback) showToast(err.message, 'error');
+            }
+        }
+
         function renderParticipantDashboard() {
             const p = state.participants.find(x => x.id === state.currentUser.id) || state.currentUser;
             document.getElementById('p-top-name').textContent = p.name;
@@ -1167,9 +1212,10 @@
 
             if (p.locked) {
                 box.innerHTML = `
-                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-1">
+                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
                         <div class="font-bold flex items-center gap-1.5"><i data-lucide="lock" class="w-4 h-4"></i> Sesi Ujian Anda Sedang Terkunci</div>
-                        <p>Hubungi Admin atau Pengawas Ruang untuk membuka kunci sesi Anda.</p>
+                        <p>Hubungi Admin atau Pengawas Ruang untuk membuka kunci sesi Anda, lalu klik tombol cek status di bawah.</p>
+                        <button type="button" onclick="refreshParticipantStatus(true)" class="px-3.5 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold">Cek Status Kunci</button>
                     </div>`;
                 return;
             }
@@ -1185,9 +1231,12 @@
                             <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                                 Token ujian belum diaktifkan oleh <strong>Admin / Super Admin / Pengawas</strong>. Setelah waktu ujian dimulai dan token diaktifkan oleh panitia, token akan otomatis muncul di sini.
                             </p>
-                            <div class="pt-2">
+                            <div class="pt-2 flex flex-wrap gap-2">
                                 <button disabled class="px-5 py-2.5 rounded-xl bg-slate-300 dark:bg-navy-800 text-slate-500 text-xs font-bold cursor-not-allowed inline-flex items-center gap-2">
                                     <i data-lucide="lock" class="w-4 h-4"></i> Mulai Ujian (Terkunci)
+                                </button>
+                                <button type="button" onclick="refreshParticipantStatus(true)" class="px-4 py-2.5 rounded-xl bg-cyan-600/15 hover:bg-cyan-600/25 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-bold inline-flex items-center gap-1.5 transition">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Cek Status Token
                                 </button>
                             </div>
                         </div>
@@ -1224,7 +1273,7 @@
             copyTextFallback(token, `Token "${token}" berhasil disalin & diisikan!`);
         }
 
-        function verifyTokenAndProceed() {
+        async function verifyTokenAndProceed() {
             if (!state.settings.tokenActive) {
                 showToast('Token belum diaktifkan oleh panitia.', 'warning');
                 return;
@@ -1234,12 +1283,13 @@
                 showToast('Silakan salin atau masukkan token ujian terlebih dahulu.', 'warning');
                 return;
             }
-            if (val !== state.settings.examToken.toUpperCase()) {
-                showToast('Token tidak cocok! Periksa kembali token yang aktif.', 'error');
-                return;
+            try {
+                await callApi('verifyExamToken', { examToken: val });
+                stopParticipantTokenPolling();
+                openPrepScreen();
+            } catch (err) {
+                showToast(err.message || 'Token tidak cocok!', 'error');
             }
-            addAuditLog(state.currentUser.id, 'Peserta', `Verifikasi token ujian (${val}) berhasil`, 'info');
-            openPrepScreen();
         }
 
         /* =====================================================================
@@ -1297,7 +1347,6 @@
 
         function grantCameraException() {
             state.cameraException = true;
-            addAuditLog(state.currentUser.id, 'Peserta', 'Menggunakan pengecualian tanpa kamera (izin admin)', 'warning');
             showToast('Pengecualian perangkat tanpa kamera diaktifkan.', 'info');
             renderPrepChecklist();
             updatePrepProceedButton();
@@ -1318,50 +1367,78 @@
         }
 
         /* =====================================================================
-           8. EXAM ENGINE, TIMER, AUTOSAVE & EXAM SECURITY
+           8. EXAM ENGINE, TIMER, AUTOSAVE & EXAM SECURITY (CLOUD SYNCED)
            ===================================================================== */
-        function beginExamSession() {
-            state.examActive = true;
-            state.examFinished = false;
-            state.examLocked = false;
-            state.currentQuestionIdx = 0;
-            state.remainingSeconds = state.settings.durationMinutes * 60;
-
-            const p = state.participants.find(x => x.id === state.currentUser.id);
-            if (p) {
-                p.status = 'Sedang Berlangsung';
-                p.camera = state.cameraReady ? 'Online' : 'Offline';
+        async function beginExamSession() {
+            const btn = document.getElementById('btn-start-exam-now');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memulai Sesi di Server...`;
+                lucide.createIcons();
             }
 
-            document.getElementById('exam-p-name').textContent = state.currentUser.name;
-            document.getElementById('exam-p-id').textContent = state.currentUser.id;
-            document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
-            document.getElementById('exam-locked-overlay').classList.add('hidden');
-            document.getElementById('exam-locked-overlay').classList.remove('flex');
+            try {
+                const res = await callApi('startExam', { cameraActive: state.cameraReady });
+                state.sessionId = res.sessionId;
+                state.examActive = true;
+                state.examFinished = false;
+                state.examLocked = !!res.isLocked;
+                state.currentQuestionIdx = 0;
+                state.remainingSeconds = Number(res.remainingSeconds ?? (state.settings.durationMinutes * 60));
+                if (res.savedAnswers && typeof res.savedAnswers === 'object') {
+                    state.answers = { ...res.savedAnswers };
+                }
 
-            // Attach camera mini preview if active
-            const miniVid = document.getElementById('exam-camera-mini');
-            const camIcon = document.getElementById('exam-camera-icon');
-            const camDot = document.getElementById('exam-cam-dot');
-            const camStatus = document.getElementById('exam-cam-status');
-            if (state.cameraStream) {
-                miniVid.srcObject = state.cameraStream;
-                miniVid.classList.remove('hidden');
-                camIcon.classList.add('hidden');
-                camDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-                camStatus.textContent = 'Kamera Online';
-            } else {
-                miniVid.classList.add('hidden');
-                camIcon.classList.remove('hidden');
-                camDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-                camStatus.textContent = 'Pengecualian Admin';
+                const p = state.participants.find(x => x.id === state.currentUser.id);
+                if (p) {
+                    p.status = state.examLocked ? 'Terkunci' : 'Sedang Berlangsung';
+                    p.camera = state.cameraReady ? 'Online' : 'Offline';
+                }
+
+                document.getElementById('exam-p-name').textContent = state.currentUser.name;
+                document.getElementById('exam-p-id').textContent = state.currentUser.id;
+                document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
+
+                if (state.examLocked) {
+                    document.getElementById('exam-locked-overlay').classList.remove('hidden');
+                    document.getElementById('exam-locked-overlay').classList.add('flex');
+                } else {
+                    document.getElementById('exam-locked-overlay').classList.add('hidden');
+                    document.getElementById('exam-locked-overlay').classList.remove('flex');
+                }
+
+                const miniVid = document.getElementById('exam-camera-mini');
+                const camIcon = document.getElementById('exam-camera-icon');
+                const camDot = document.getElementById('exam-cam-dot');
+                const camStatus = document.getElementById('exam-cam-status');
+                if (state.cameraStream) {
+                    miniVid.srcObject = state.cameraStream;
+                    miniVid.classList.remove('hidden');
+                    camIcon.classList.add('hidden');
+                    camDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                    camStatus.textContent = 'Kamera Online';
+                } else {
+                    miniVid.classList.add('hidden');
+                    camIcon.classList.remove('hidden');
+                    camDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                    camStatus.textContent = 'Pengecualian Admin';
+                }
+
+                showView('exam');
+                renderCurrentQuestion();
+                renderNavGrid();
+                startExamTimer();
+                startHeartbeat();
+                if (res.resumed) showToast('Sesi sebelumnya dipulihkan dari Google Sheets.', 'info');
+            } catch (err) {
+                showToast(err.message || 'Gagal memulai sesi ujian.', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="play-circle" class="w-5 h-5"></i> Lanjutkan & Mulai Mengerjakan Soal`;
+                    lucide.createIcons();
+                }
             }
-
-            addAuditLog(state.currentUser.id, 'Peserta', 'Memulai sesi ujian TIU (35 Soal / 45 Menit)', 'info');
-            showView('exam');
-            renderCurrentQuestion();
-            renderNavGrid();
-            startExamTimer();
         }
 
         function startExamTimer() {
@@ -1381,6 +1458,33 @@
             if (state.timerInterval) {
                 clearInterval(state.timerInterval);
                 state.timerInterval = null;
+            }
+        }
+
+        function startHeartbeat() {
+            stopHeartbeat();
+            state.heartbeatInterval = setInterval(async () => {
+                if (!state.examActive || !navigator.onLine) return;
+                try {
+                    const res = await callApi('heartbeat', { sessionId: state.sessionId });
+                    if (res.isLocked && !state.examLocked) {
+                        state.examLocked = true;
+                        document.getElementById('exam-locked-overlay').classList.remove('hidden');
+                        document.getElementById('exam-locked-overlay').classList.add('flex');
+                    } else if (!res.isLocked && state.examLocked) {
+                        state.examLocked = false;
+                        document.getElementById('exam-locked-overlay').classList.add('hidden');
+                        document.getElementById('exam-locked-overlay').classList.remove('flex');
+                        showToast('Sesi Anda telah dibuka kembali oleh Pengawas.', 'success');
+                    }
+                } catch (e) {}
+            }, 25000);
+        }
+
+        function stopHeartbeat() {
+            if (state.heartbeatInterval) {
+                clearInterval(state.heartbeatInterval);
+                state.heartbeatInterval = null;
             }
         }
 
@@ -1457,21 +1561,68 @@
                 p.answers[qId] = key;
                 p.progress = Object.keys(p.answers).length;
             }
-            triggerAutosave();
             renderCurrentQuestion();
             renderNavGrid();
+            triggerAutosave(qId, key);
         }
 
-        function triggerAutosave() {
+        async function triggerAutosave(qId, key) {
             state.saveVersion++;
+            const payload = {
+                sessionId: state.sessionId,
+                questionId: qId,
+                selectedOption: key,
+                isDoubt: !!state.doubts[qId],
+                version: state.saveVersion,
+                idempotencyKey: `${state.currentUser?.id || 'P'}-Q${qId}-V${state.saveVersion}-${Date.now()}`
+            };
+
             const badge = document.getElementById('exam-save-badge');
-            if (!badge) return;
-            badge.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-amber-500"></i> Menyimpan...`;
-            lucide.createIcons();
-            setTimeout(() => {
-                badge.innerHTML = `<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Tersimpan (v${state.saveVersion})`;
+            if (badge) {
+                badge.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-amber-500"></i> Menyimpan...`;
                 lucide.createIcons();
-            }, 320);
+            }
+
+            if (!navigator.onLine) {
+                state.pendingSyncQueue.push(payload);
+                if (badge) {
+                    badge.innerHTML = `<i data-lucide="cloud-off" class="w-3.5 h-3.5 text-amber-500"></i> Antrean Offline (${state.pendingSyncQueue.length})`;
+                    lucide.createIcons();
+                }
+                return;
+            }
+
+            try {
+                await callApi('saveAnswer', payload);
+                if (badge) {
+                    badge.innerHTML = `<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Tersimpan di Sheets (v${payload.version})`;
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                state.pendingSyncQueue.push(payload);
+                if (badge) {
+                    badge.innerHTML = `<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i> Belum Tersinkron`;
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        async function flushPendingAnswers() {
+            if (!state.pendingSyncQueue.length || !navigator.onLine) return;
+            const queue = [...state.pendingSyncQueue];
+            state.pendingSyncQueue = [];
+            for (const item of queue) {
+                try {
+                    await callApi('saveAnswer', item);
+                } catch (e) {
+                    state.pendingSyncQueue.push(item);
+                }
+            }
+            const badge = document.getElementById('exam-save-badge');
+            if (badge && state.pendingSyncQueue.length === 0) {
+                badge.innerHTML = `<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Semua Tersinkron`;
+                lucide.createIcons();
+            }
         }
 
         function toggleDoubtCurrent() {
@@ -1479,6 +1630,9 @@
             state.doubts[q.id] = !state.doubts[q.id];
             renderCurrentQuestion();
             renderNavGrid();
+            if (state.answers[q.id]) {
+                triggerAutosave(q.id, state.answers[q.id]);
+            }
         }
 
         function goToQuestion(idx) {
@@ -1531,23 +1685,39 @@
         }
 
         // Exam Security: Page Visibility Detection
-        document.addEventListener('visibilitychange', () => {
+        document.addEventListener('visibilitychange', async () => {
             if (document.hidden && state.examActive && !state.examFinished && !state.examLocked) {
                 state.violations++;
                 const p = state.participants.find(x => x.id === state.currentUser?.id);
                 if (p) p.violations = state.violations;
                 document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
-                addAuditLog(state.currentUser.id, 'Peserta', `Terdeteksi perpindahan tab (Pelanggaran ke-${state.violations})`, 'danger');
 
-                if (state.violations >= state.settings.maxViolations) {
-                    state.examLocked = true;
-                    if (p) { p.locked = true; p.status = 'Terkunci'; }
-                    document.getElementById('exam-locked-overlay').classList.remove('hidden');
-                    document.getElementById('exam-locked-overlay').classList.add('flex');
-                    addAuditLog(state.currentUser.id, 'SYSTEM', 'Sesi ujian dikunci otomatis akibat batas pelanggaran tercapai', 'danger');
-                } else {
-                    showToast(`PERINGATAN (${state.violations}/${state.settings.maxViolations}): Dilarang meninggalkan halaman ujian!`, 'warning');
+                try {
+                    const res = await callApi('logProctoringEvent', {
+                        sessionId: state.sessionId,
+                        eventType: 'TAB_SWITCH',
+                        detail: `Peserta meninggalkan tab ujian (Pelanggaran ke-${state.violations})`
+                    });
+                    if (res.violations) state.violations = res.violations;
+                    document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
+                    if (res.isLocked) {
+                        state.examLocked = true;
+                        if (p) { p.locked = true; p.status = 'Terkunci'; }
+                        document.getElementById('exam-locked-overlay').classList.remove('hidden');
+                        document.getElementById('exam-locked-overlay').classList.add('flex');
+                        return;
+                    }
+                } catch (e) {
+                    if (state.violations >= state.settings.maxViolations) {
+                        state.examLocked = true;
+                        if (p) { p.locked = true; p.status = 'Terkunci'; }
+                        document.getElementById('exam-locked-overlay').classList.remove('hidden');
+                        document.getElementById('exam-locked-overlay').classList.add('flex');
+                        return;
+                    }
                 }
+
+                showToast(`PERINGATAN (${state.violations}/${state.settings.maxViolations}): Dilarang meninggalkan halaman ujian!`, 'warning');
             }
         });
 
@@ -1560,7 +1730,7 @@
                 iconClass: 'bg-emerald-500/15 text-emerald-500',
                 bodyHtml: `
                     <div class="space-y-3 text-xs">
-                        <p>Pastikan Anda telah memeriksa kembali jawaban sebelum mengakhiri sesi ujian.</p>
+                        <p>Pastikan Anda telah memeriksa kembali jawaban sebelum mengakhiri sesi ujian. Nilai akhir akan dihitung dan disimpan di Google Sheets.</p>
                         <div class="grid grid-cols-2 gap-2 text-center">
                             <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                                 <span class="text-slate-500 block">Sudah Dijawab</span>
@@ -1579,57 +1749,79 @@
             });
         }
 
-        function finalizeExam(isTimeout = false) {
+        async function finalizeExam(isTimeout = false) {
             stopExamTimer();
+            stopHeartbeat();
             stopCameraStream();
             state.examActive = false;
             state.examFinished = true;
 
-            let correct = 0;
-            const byDomain = { Verbal: { c: 0, t: 12 }, Numerik: { c: 0, t: 14 }, Figural: { c: 0, t: 9 } };
-            state.questions.forEach(q => {
-                if (state.answers[q.id] === q.answer) {
-                    correct++;
-                    byDomain[q.domain].c++;
+            showToast('Mengirim & menghitung skor akhir di server Google Sheets...', 'info');
+
+            try {
+                const res = await callApi('finalizeExam', {
+                    sessionId: state.sessionId,
+                    answers: state.answers
+                });
+
+                const srv = res.result || {};
+                const byDomain = {
+                    Verbal: { c: srv.byDomain?.Verbal ?? 0, t: 12 },
+                    Numerik: { c: srv.byDomain?.Numerik ?? 0, t: 14 },
+                    Figural: { c: srv.byDomain?.Figural ?? 0, t: 9 }
+                };
+
+                const score = srv.score ?? 0;
+                const correct = srv.correct ?? 0;
+                const pct = String(srv.percentage ?? ((correct / 35) * 100).toFixed(1));
+                const submittedAt = nowTime();
+
+                const p = state.participants.find(x => x.id === state.currentUser.id);
+                if (p) {
+                    p.status = 'Selesai';
+                    p.score = score;
+                    p.progress = Object.keys(state.answers).length;
+                    p.answers = { ...state.answers };
+                    p.submittedAt = submittedAt;
+                    p.camera = 'Offline';
+                    p.timeLeft = '00:00';
                 }
-            });
 
-            const score = correct * 5;
-            const pct = ((correct / 35) * 100).toFixed(1);
-            const submittedAt = nowTime();
-
-            const p = state.participants.find(x => x.id === state.currentUser.id);
-            if (p) {
-                p.status = 'Selesai';
-                p.score = score;
-                p.progress = Object.keys(state.answers).length;
-                p.answers = { ...state.answers };
-                p.submittedAt = submittedAt;
-                p.camera = 'Offline';
-                p.timeLeft = '00:00';
+                state.lastResult = { correct, score, pct, byDomain, submittedAt, isTimeout };
+                renderResultView();
+                showView('result');
+                showToast('Ujian berhasil dikumpulkan dan tersimpan permanen di Google Sheets!', 'success');
+            } catch (err) {
+                showToast('Gagal finalisasi ke server: ' + err.message, 'error');
+                state.examActive = true;
+                state.examFinished = false;
             }
-
-            state.lastResult = { correct, score, pct, byDomain, submittedAt, isTimeout };
-            addAuditLog(state.currentUser.id, 'Peserta', `Finalisasi ujian (${isTimeout ? 'Waktu Habis' : 'Manual'}). Skor: ${score}/175 (${correct}/35 benar)`, 'info');
-            renderResultView();
-            showView('result');
         }
 
-        function openParticipantOwnResult() {
-            const p = state.participants.find(x => x.id === state.currentUser.id);
-            if (!p) return;
-            state.answers = p.answers || {};
-            let correct = 0;
-            const byDomain = { Verbal: { c: 0, t: 12 }, Numerik: { c: 0, t: 14 }, Figural: { c: 0, t: 9 } };
-            state.questions.forEach(q => {
-                if (state.answers[q.id] === q.answer) {
-                    correct++;
-                    byDomain[q.domain].c++;
-                }
-            });
-            state.lastResult = { correct, score: correct * 5, pct: ((correct / 35) * 100).toFixed(1), byDomain, submittedAt: p.submittedAt || nowTime(), isTimeout: false };
-            renderResultView();
-            showView('result');
+        async function openParticipantOwnResult() {
+            try {
+                const res = await callApi('getOwnAnswerHistory');
+                const byDomain = { Verbal: { c: 0, t: 12 }, Numerik: { c: 0, t: 14 }, Figural: { c: 0, t: 9 } };
+                const ansMap = {};
+                (res.history || []).forEach(h => {
+                    if (h.participantAnswer) ansMap[h.questionId] = h.participantAnswer;
+                    if (h.status === 'correct' && byDomain[h.domain]) byDomain[h.domain].c++;
+                });
+                state.answers = ansMap;
+                const correct = res.summary?.correct ?? 0;
+                const score = res.summary?.score ?? (correct * 5);
+                state.lastResult = {
+                    correct, score,
+                    pct: ((correct / 35) * 100).toFixed(1),
+                    byDomain,
+                    submittedAt: nowTime(),
+                    isTimeout: false
+                };
+                renderResultView();
+                showView('result');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
         function renderResultView() {
@@ -1642,7 +1834,7 @@
             document.getElementById('result-container').innerHTML = `
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Bukti Pengumpulan Ujian</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Bukti Pengumpulan Ujian (Tersimpan di Google Sheets)</span>
                         <h2 class="font-heading font-bold text-2xl text-slate-900 dark:text-white">${esc(state.currentUser.name)} (${state.currentUser.id})</h2>
                         <p class="text-xs text-slate-500 mt-0.5">Waktu Kumpul: ${r.submittedAt} • Paket: Tes Diagnostik TIU (35 Soal)</p>
                     </div>
@@ -1694,7 +1886,7 @@
         }
 
         /* =====================================================================
-           9. ADMIN, SUPER ADMIN & PROCTOR PORTAL (15 MENUS + TOKEN + RIWAYAT)
+           9. ADMIN, SUPER ADMIN & PROCTOR PORTAL (15 MENUS + CLOUD SYNC)
            ===================================================================== */
         const ADMIN_MENUS = [
             { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
@@ -1713,6 +1905,34 @@
             { id: 'account', label: 'Manajemen Akun', icon: 'user-circle' },
             { id: 'logout', label: 'Logout', icon: 'log-out' }
         ];
+
+        async function refreshAdminData(showFeedback = false) {
+            try {
+                const res = await callApi('getAdminDashboard');
+                if (res.settings) {
+                    state.settings = { ...state.settings, ...res.settings };
+                }
+                if (Array.isArray(res.participants)) {
+                    state.participants = res.participants.map(p => ({
+                        ...p,
+                        timeLeft: p.status === 'Selesai' ? '00:00' : `${state.settings.durationMinutes}:00`,
+                        answers: {}
+                    }));
+                }
+                if (Array.isArray(res.auditLogs)) {
+                    state.auditLogs = res.auditLogs.map(l => ({
+                        ...l,
+                        time: l.time ? new Date(l.time).toLocaleTimeString('id-ID', { hour12: false }) : '-'
+                    }));
+                }
+                if (state.currentUser && state.currentUser.role !== 'Peserta') {
+                    renderAdminSection(state.activeAdminMenu);
+                }
+                if (showFeedback) showToast('Data berhasil disinkronkan dari Google Sheets.', 'success');
+            } catch (err) {
+                if (showFeedback) showToast(err.message, 'error');
+            }
+        }
 
         function renderAdminShell() {
             document.getElementById('admin-role-label').textContent = state.currentUser.role;
@@ -1741,7 +1961,6 @@
             document.getElementById('admin-mobile-drawer').classList.toggle('hidden');
         }
 
-        // Reusable Token Control Card (Visible to Super Admin, Admin Ujian, and Pengawas)
         function renderTokenControlWidget() {
             const active = state.settings.tokenActive;
             return `
@@ -1758,7 +1977,7 @@
                                 <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400">Hanya Admin, Super Admin, & Pengawas yang dapat mengaktifkan atau mengacak token ujian.</p>
+                        <p class="text-[11px] text-slate-400">Hanya Admin, Super Admin, & Pengawas yang dapat mengaktifkan atau mengacak token ujian (tersimpan di Google Sheets).</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <button onclick="regenerateExamToken()" class="px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition">
@@ -1771,21 +1990,27 @@
                 </div>`;
         }
 
-        function toggleExamTokenActive() {
-            state.settings.tokenActive = !state.settings.tokenActive;
-            addAuditLog(state.currentUser.name, state.currentUser.role, `${state.settings.tokenActive ? 'Mengaktifkan' : 'Menonaktifkan'} token ujian (${state.settings.examToken})`, state.settings.tokenActive ? 'info' : 'warning');
-            showToast(state.settings.tokenActive ? `Token ${state.settings.examToken} AKTIF dan muncul di laman peserta!` : 'Token ujian dinonaktifkan.', state.settings.tokenActive ? 'success' : 'warning');
-            renderAdminSection(state.activeAdminMenu);
+        async function toggleExamTokenActive() {
+            try {
+                const res = await callApi('toggleExamToken');
+                state.settings.tokenActive = !!res.tokenActive;
+                if (res.examToken) state.settings.examToken = res.examToken;
+                showToast(state.settings.tokenActive ? `Token ${state.settings.examToken} AKTIF dan tersimpan di Google Sheets!` : 'Token ujian dinonaktifkan.', state.settings.tokenActive ? 'success' : 'warning');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function regenerateExamToken() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let tok = 'TIU';
-            for (let i = 0; i < 5; i++) tok += chars[Math.floor(Math.random() * chars.length)];
-            state.settings.examToken = tok;
-            addAuditLog(state.currentUser.name, state.currentUser.role, `Mengacak token ujian baru: ${tok}`, 'info');
-            showToast(`Token baru dibuat: ${tok}`, 'success');
-            renderAdminSection(state.activeAdminMenu);
+        async function regenerateExamToken() {
+            try {
+                const res = await callApi('regenerateExamToken');
+                state.settings.examToken = res.examToken;
+                showToast(`Token baru tersimpan di Google Sheets: ${res.examToken}`, 'success');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
         function renderAdminSection(menuId) {
@@ -1798,7 +2023,7 @@
             const doneP = state.participants.filter(p => p.status === 'Selesai').length;
             const lockedP = state.participants.filter(p => p.locked).length;
             const camOn = state.participants.filter(p => p.camera === 'Online').length;
-            const totalViol = state.participants.reduce((a, b) => a + b.violations, 0);
+            const totalViol = state.participants.reduce((a, b) => a + (b.violations || 0), 0);
 
             if (menuId === 'dashboard') {
                 area.innerHTML = `
@@ -1815,26 +2040,30 @@
                         <div class="lg:col-span-7 bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3">
                             <h2 class="font-heading font-bold text-sm text-white">Ringkasan Progres Peserta</h2>
                             <div class="space-y-2.5 text-xs">
-                                ${state.participants.slice(0, 6).map(p => {
-                                    const pct = Math.round((p.progress / 35) * 100);
-                                    return `<div class="space-y-1">
-                                        <div class="flex justify-between">
-                                            <span class="font-semibold text-white">${esc(p.name)} <span class="text-slate-400 font-mono">(${p.id})</span></span>
-                                            <span class="text-cyan-400 font-bold">${p.progress}/35 (${pct}%)</span>
-                                        </div>
-                                        <div class="w-full h-2 bg-navy-950 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${pct}%"></div></div>
-                                    </div>`;
-                                }).join('')}
+                                ${state.participants.length === 0
+                                    ? '<p class="text-slate-400">Belum ada peserta terdaftar di Google Sheets.</p>'
+                                    : state.participants.slice(0, 8).map(p => {
+                                        const pct = Math.round(((p.progress || 0) / 35) * 100);
+                                        return `<div class="space-y-1">
+                                            <div class="flex justify-between">
+                                                <span class="font-semibold text-white">${esc(p.name)} <span class="text-slate-400 font-mono">(${p.id})</span></span>
+                                                <span class="text-cyan-400 font-bold">${p.progress || 0}/35 (${pct}%)</span>
+                                            </div>
+                                            <div class="w-full h-2 bg-navy-950 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${pct}%"></div></div>
+                                        </div>`;
+                                    }).join('')}
                             </div>
                         </div>
                         <div class="lg:col-span-5 bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3">
                             <h2 class="font-heading font-bold text-sm text-white">Notifikasi & Audit Terbaru</h2>
                             <div class="space-y-2 max-h-64 overflow-y-auto text-xs">
-                                ${state.auditLogs.slice(0, 8).map(l => `
-                                    <div class="p-2.5 rounded-xl bg-navy-950 border border-slate-800">
-                                        <div class="flex justify-between text-[10px] text-slate-400"><span>${esc(l.actor)} (${l.role})</span><span class="font-mono">${l.time}</span></div>
-                                        <div class="mt-0.5 ${l.level === 'danger' ? 'text-rose-400' : (l.level === 'warning' ? 'text-amber-300' : 'text-slate-200')}">${esc(l.event)}</div>
-                                    </div>`).join('')}
+                                ${state.auditLogs.length === 0
+                                    ? '<p class="text-slate-400">Belum ada catatan audit.</p>'
+                                    : state.auditLogs.slice(0, 10).map(l => `
+                                        <div class="p-2.5 rounded-xl bg-navy-950 border border-slate-800">
+                                            <div class="flex justify-between text-[10px] text-slate-400"><span>${esc(l.actor)} (${l.role})</span><span class="font-mono">${l.time}</span></div>
+                                            <div class="mt-0.5 ${l.level === 'danger' ? 'text-rose-400' : (l.level === 'warning' ? 'text-amber-300' : 'text-slate-200')}">${esc(l.event)}</div>
+                                        </div>`).join('')}
                             </div>
                         </div>
                     </div>`;
@@ -1842,7 +2071,7 @@
                 area.innerHTML = `
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <h2 class="font-heading font-bold text-sm text-white">Daftar Peserta Terdaftar (${totalP})</h2>
+                            <h2 class="font-heading font-bold text-sm text-white">Daftar Peserta Terdaftar di Google Sheets (${totalP})</h2>
                             <button onclick="openAddParticipantModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5">
                                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Peserta
                             </button>
@@ -1859,7 +2088,7 @@
                                             <td class="py-2.5 px-3 font-semibold text-white">${esc(p.name)}</td>
                                             <td class="py-2.5 px-3">${p.room}</td>
                                             <td class="py-2.5 px-3">${p.status}</td>
-                                            <td class="py-2.5 px-3">${p.progress}/35</td>
+                                            <td class="py-2.5 px-3">${p.progress || 0}/35</td>
                                             <td class="py-2.5 px-3 text-right space-x-1">
                                                 <button onclick="openParticipantAnswersModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 font-semibold">Riwayat</button>
                                                 <button onclick="adminResetParticipant('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 font-semibold">Reset</button>
@@ -1873,11 +2102,9 @@
             } else if (menuId === 'bank') {
                 area.innerHTML = `
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
-                        <div class="flex flex-wrap justify-between items-center gap-2">
-                            <div>
-                                <h2 class="font-heading font-bold text-sm text-white">Bank Soal TIU Diagnostik (35 Butir — Bagian 1.5 PDF)</h2>
-                                <p class="text-xs text-slate-400">12 Verbal • 14 Numerik • 9 Figural SVG. Kunci jawaban tidak dikirim ke browser peserta sebelum finalisasi.</p>
-                            </div>
+                        <div>
+                            <h2 class="font-heading font-bold text-sm text-white">Bank Soal TIU Diagnostik (35 Butir — Bagian 1.5 PDF)</h2>
+                            <p class="text-xs text-slate-400">12 Verbal • 14 Numerik • 9 Figural SVG. Penilaian akhir dilakukan di server Google Apps Script.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
@@ -1912,7 +2139,7 @@
                         <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-2 opacity-75">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300">DRAFT</span>
                             <h3 class="font-heading font-bold text-base text-white">SIMULASI SKD LENGKAP (TWK + TIU + TKP)</h3>
-                            <p class="text-xs text-slate-400">110 Soal • Durasi 100 Menit • Dijadwalkan pada Fase 3</p>
+                            <p class="text-xs text-slate-400">110 Soal • Durasi 100 Menit • Pengembangan lanjutan</p>
                         </div>
                     </div>`;
             } else if (menuId === 'schedule') {
@@ -1920,7 +2147,7 @@
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3 text-xs">
                         <h2 class="font-heading font-bold text-sm text-white">Jadwal & Gelombang Pelaksanaan</h2>
                         <div class="p-4 rounded-xl bg-navy-950 border border-slate-800 flex flex-wrap justify-between gap-2">
-                            <div><strong class="text-white">Gelombang 1 — Sesi Pagi (Lab-A & Lab-B)</strong><div class="text-slate-400 mt-0.5">Paket: Tes Potensi Dasar (35 Soal) • Durasi 45 Menit</div></div>
+                            <div><strong class="text-white">Gelombang 1 — Sesi Pagi (Lab-A & Lab-B)</strong><div class="text-slate-400 mt-0.5">Paket: Tes Potensi Dasar (35 Soal) • Durasi ${state.settings.durationMinutes} Menit</div></div>
                             <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-bold self-center">Berlangsung</span>
                         </div>
                     </div>`;
@@ -1931,8 +2158,8 @@
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h2 class="font-heading font-bold text-sm text-white">LIVE EXAM MONITORING CENTER (Mode Demo Fase 1)</h2>
-                                <p class="text-xs text-slate-400">Klik kartu peserta untuk detail intervensi pengawas & riwayat jawaban.</p>
+                                <h2 class="font-heading font-bold text-sm text-white">LIVE EXAM MONITORING CENTER</h2>
+                                <p class="text-xs text-slate-400">Metadata kamera disinkronkan dari Google Sheets. Klik kartu peserta untuk intervensi & riwayat jawaban.</p>
                             </div>
                             <div class="flex gap-1.5 text-xs">
                                 ${[2, 3, 4].map(n => `<button onclick="state.proctorGridCols=${n}; renderAdminSection('monitoring_cam')" class="px-3 py-1.5 rounded-lg font-bold ${state.proctorGridCols === n ? 'bg-cyan-600 text-white' : 'bg-navy-800 text-slate-300'}">${n}×${n}</button>`).join('')}
@@ -1946,18 +2173,18 @@
                                         <div class="aspect-video bg-slate-900 relative flex items-center justify-center">
                                             <i data-lucide="${p.camera === 'Online' ? 'user' : 'video-off'}" class="w-10 h-10 ${p.camera === 'Online' ? 'text-emerald-400/60' : 'text-slate-600'}"></i>
                                             <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${p.camera === 'Online' ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'}">${p.camera}</span>
-                                            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/60 text-white">${p.timeLeft}</span>
+                                            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/60 text-white">${p.timeLeft || '-'}</span>
                                             ${p.locked ? `<span class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold">TERKUNCI</span>` : ''}
                                         </div>
                                         <div class="p-3 text-xs space-y-1">
                                             <div class="font-bold text-white truncate">${esc(p.name)}</div>
                                             <div class="flex justify-between text-[11px] text-slate-400">
                                                 <span class="font-mono text-cyan-400">${p.id}</span>
-                                                <span>${p.room} • ${p.progress}/35</span>
+                                                <span>${p.room} • ${p.progress || 0}/35</span>
                                             </div>
                                             <div class="flex justify-between text-[11px] pt-1">
                                                 <span class="${p.status === 'Selesai' ? 'text-emerald-400' : 'text-slate-300'}">${p.status}</span>
-                                                <span class="${p.violations > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}">Pelanggaran: ${p.violations}</span>
+                                                <span class="${p.violations > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}">Pelanggaran: ${p.violations || 0}</span>
                                             </div>
                                         </div>
                                     </div>`;
@@ -1979,8 +2206,8 @@
                                         <tr>
                                             <td class="py-2.5 px-3"><div class="font-semibold text-white">${esc(p.name)}</div><div class="text-[10px] font-mono text-cyan-400">${p.id}</div></td>
                                             <td class="py-2.5 px-3">${p.status}</td>
-                                            <td class="py-2.5 px-3">${p.progress}/35</td>
-                                            <td class="py-2.5 px-3 font-bold ${p.violations > 0 ? 'text-rose-400' : 'text-emerald-400'}">${p.violations}×</td>
+                                            <td class="py-2.5 px-3">${p.progress || 0}/35</td>
+                                            <td class="py-2.5 px-3 font-bold ${p.violations > 0 ? 'text-rose-400' : 'text-emerald-400'}">${p.violations || 0}×</td>
                                             <td class="py-2.5 px-3 text-right space-x-1">
                                                 <button onclick="openParticipantAnswersModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 font-semibold">Riwayat</button>
                                                 <button onclick="adminSendWarning('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-semibold">Peringatkan</button>
@@ -2009,7 +2236,7 @@
                 area.innerHTML = `
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
                         <div class="flex flex-wrap justify-between items-center gap-3">
-                            <h2 class="font-heading font-bold text-sm text-white">${menuId === 'results' ? 'Rekapitulasi Hasil Ujian' : 'Pusat Laporan & Ekspor'}</h2>
+                            <h2 class="font-heading font-bold text-sm text-white">${menuId === 'results' ? 'Rekapitulasi Hasil Ujian (Google Sheets)' : 'Pusat Laporan & Ekspor'}</h2>
                             <div class="flex gap-2 no-print">
                                 <button onclick="exportReportCSV()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5"><i data-lucide="file-down" class="w-4 h-4"></i> Ekspor CSV</button>
                                 <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> Cetak / PDF</button>
@@ -2030,8 +2257,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.participants.map(p => {
-                                        const ansCount = p.answers ? Object.keys(p.answers).length : 0;
-                                        const hasData = p.status === 'Selesai' || ansCount > 0;
+                                        const hasData = p.status === 'Selesai' || (p.progress || 0) > 0;
                                         return `<tr class="hover:bg-navy-800/40 transition">
                                             <td class="py-2.5 px-3 font-mono text-cyan-400">${p.id}</td>
                                             <td class="py-2.5 px-3 font-semibold text-white">${esc(p.name)}</td>
@@ -2059,19 +2285,21 @@
             } else if (menuId === 'item_analysis') {
                 area.innerHTML = `
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4 text-xs">
-                        <h2 class="font-heading font-bold text-sm text-white">Analisis Butir Soal (Berdasarkan Jawaban Tersimpan)</h2>
+                        <h2 class="font-heading font-bold text-sm text-white">Ringkasan Distribusi 35 Butir Soal TIU</h2>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="text-slate-400 border-b border-slate-800">
-                                    <tr><th class="py-2 px-3">No</th><th class="py-2 px-3">Ranah</th><th class="py-2 px-3">Subkategori</th><th class="py-2 px-3">Menjawab Benar</th><th class="py-2 px-3">Indeks Kesukaran (P)</th></tr>
+                                    <tr><th class="py-2 px-3">No</th><th class="py-2 px-3">Ranah</th><th class="py-2 px-3">Subkategori</th><th class="py-2 px-3">Kunci Resmi</th><th class="py-2 px-3">Bobot</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800">
-                                    ${state.questions.slice(0, 15).map(q => {
-                                        const respondents = state.participants.filter(p => p.answers && p.answers[q.id]);
-                                        const right = respondents.filter(p => p.answers[q.id] === q.answer).length;
-                                        const pIdx = respondents.length ? (right / respondents.length).toFixed(2) : '-';
-                                        return `<tr><td class="py-2 px-3 font-mono text-cyan-400">${q.id}</td><td class="py-2 px-3">${q.domain}</td><td class="py-2 px-3 text-slate-400">${q.sub}</td><td class="py-2 px-3">${right}/${respondents.length}</td><td class="py-2 px-3 font-bold text-emerald-400">${pIdx}</td></tr>`;
-                                    }).join('')}
+                                    ${state.questions.map(q => `
+                                        <tr>
+                                            <td class="py-2 px-3 font-mono text-cyan-400">${q.id}</td>
+                                            <td class="py-2 px-3">${q.domain}</td>
+                                            <td class="py-2 px-3 text-slate-400">${q.sub}</td>
+                                            <td class="py-2 px-3 font-bold text-emerald-400">${q.answer}</td>
+                                            <td class="py-2 px-3">+5 Poin</td>
+                                        </tr>`).join('')}
                                 </tbody>
                             </table>
                         </div>
@@ -2091,14 +2319,17 @@
             } else if (menuId === 'settings') {
                 area.innerHTML = `
                     <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 max-w-xl space-y-4 text-xs">
-                        <h2 class="font-heading font-bold text-sm text-white">Pengaturan Ujian & Keamanan</h2>
+                        <h2 class="font-heading font-bold text-sm text-white">Pengaturan Ujian & Backup Google Sheets</h2>
                         <div class="space-y-3">
                             <div><label class="block text-slate-400 mb-1">Nama Penyelenggara</label><input id="set-org" value="${esc(state.settings.orgName)}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div><label class="block text-slate-400 mb-1">Durasi Ujian (Menit)</label><input id="set-dur" type="number" value="${state.settings.durationMinutes}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
                                 <div><label class="block text-slate-400 mb-1">Batas Pelanggaran Tab</label><input id="set-viol" type="number" value="${state.settings.maxViolations}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
                             </div>
-                            <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Simpan Pengaturan</button>
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Simpan Pengaturan</button>
+                                <button onclick="createCloudBackup()" class="px-4 py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 font-bold">Backup Spreadsheet ke Drive</button>
+                            </div>
                         </div>
                     </div>`;
             } else if (menuId === 'account') {
@@ -2116,7 +2347,7 @@
         }
 
         /* =====================================================================
-           10. ADMIN ACTIONS & PARTICIPANT ANSWER HISTORY MODAL
+           10. ADMIN ACTIONS & PARTICIPANT ANSWER HISTORY MODAL (CLOUD SYNCED)
            ===================================================================== */
         function openProctorDetailModal(pid) {
             const p = state.participants.find(x => x.id === pid);
@@ -2130,10 +2361,10 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Ruang: <strong>${p.room}</strong></div>
                             <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Status: <strong>${p.status}</strong></div>
-                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Progress: <strong>${p.progress}/35 Soal</strong></div>
-                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Pelanggaran: <strong class="text-rose-500">${p.violations}×</strong></div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Progress: <strong>${p.progress || 0}/35 Soal</strong></div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Pelanggaran: <strong class="text-rose-500">${p.violations || 0}×</strong></div>
                         </div>
-                        <p class="text-slate-500">Setiap tindakan pengawas dicatat otomatis ke Audit Log.</p>
+                        <p class="text-slate-500">Setiap tindakan pengawas dicatat otomatis ke Google Sheets (ADMIN_ACTIONS & AUDIT_LOGS).</p>
                     </div>`,
                 footerHtml: `
                     <button onclick="closeModal(); openParticipantAnswersModal('${p.id}');" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs">Riwayat Jawaban</button>
@@ -2143,23 +2374,37 @@
             });
         }
 
-        function openParticipantAnswersModal(pid, filter = 'all') {
-            const p = state.participants.find(x => x.id === pid);
-            if (!p) return;
+        async function openParticipantAnswersModal(pid, filter = 'all', cachedPayload = null) {
+            let dataPayload = cachedPayload;
 
-            if (filter === 'all' && state.currentUser && state.currentUser.role !== 'Peserta') {
-                addAuditLog(state.currentUser.name, state.currentUser.role, `Melihat riwayat jawaban peserta ${p.name} (${p.id})`, 'info');
+            if (!dataPayload) {
+                openModal({
+                    title: `Memuat Riwayat Jawaban (${pid})...`,
+                    icon: 'loader-2',
+                    iconClass: 'bg-cyan-500/15 text-cyan-500',
+                    bodyHtml: `<div class="py-8 text-center text-xs text-slate-400">Mengambil data riwayat jawaban dari Google Sheets...</div>`,
+                    footerHtml: ''
+                });
+
+                try {
+                    const actionName = state.currentUser?.role === 'Peserta' ? 'getOwnAnswerHistory' : 'getParticipantAnswerHistory';
+                    dataPayload = await callApi(actionName, { participantId: pid });
+                } catch (err) {
+                    closeModal();
+                    showToast(err.message || 'Gagal memuat riwayat jawaban.', 'error');
+                    return;
+                }
             }
 
-            const pAnswers = p.answers || {};
-            let correct = 0, wrong = 0, blank = 0;
+            const p = dataPayload.participant;
+            const historyItems = dataPayload.history || [];
+            const summary = dataPayload.summary || { correct: 0, wrong: 0, blank: 35, score: 0 };
+            state._lastHistoryPayload = dataPayload;
 
             const rows = state.questions.map(q => {
-                const userAns = pAnswers[q.id] || null;
-                let status = 'blank';
-                if (!userAns) blank++;
-                else if (userAns === q.answer) { correct++; status = 'correct'; }
-                else { wrong++; status = 'wrong'; }
+                const h = historyItems.find(x => Number(x.questionId) === q.id);
+                const userAns = h ? h.participantAnswer : null;
+                const status = h ? h.status : 'blank';
 
                 const getOptLabel = (key) => {
                     if (!key) return 'Tidak Dijawab (Kosong)';
@@ -2174,23 +2419,28 @@
                     return opt && opt.svg ? `<div class="mt-1.5">${opt.svg}</div>` : '';
                 };
 
-                return { q, userAns, status, userText: getOptLabel(userAns), keyText: getOptLabel(q.answer), userSvg: getOptSvg(userAns), keySvg: getOptSvg(q.answer) };
+                return {
+                    q, userAns, status,
+                    userText: getOptLabel(userAns),
+                    keyText: getOptLabel(q.answer),
+                    userSvg: getOptSvg(userAns),
+                    keySvg: getOptSvg(q.answer)
+                };
             });
 
             const filteredRows = filter === 'all' ? rows : rows.filter(r => r.status === filter);
-            const computedScore = correct * 5;
-            const totalAnswered = correct + wrong;
+            const totalAnswered = summary.correct + summary.wrong;
 
             const filterBtn = (key, label, count) => {
                 const active = filter === key;
-                return `<button onclick="openParticipantAnswersModal('${p.id}', '${key}')" class="px-3 py-1.5 rounded-xl text-[11px] font-bold border transition ${active ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-100 dark:bg-navy-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-cyan-500'}">${label} (${count})</button>`;
+                return `<button onclick="openParticipantAnswersModal('${p.id}', '${key}', state._lastHistoryPayload)" class="px-3 py-1.5 rounded-xl text-[11px] font-bold border transition ${active ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-100 dark:bg-navy-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-cyan-500'}">${label} (${count})</button>`;
             };
 
             const listHtml = totalAnswered === 0 && p.status === 'Belum Dimulai'
                 ? `<div class="p-6 rounded-2xl bg-slate-100 dark:bg-navy-950 border border-dashed border-slate-300 dark:border-slate-700 text-center space-y-1.5">
                         <i data-lucide="file-clock" class="w-8 h-8 text-slate-400 mx-auto"></i>
                         <p class="font-bold text-slate-700 dark:text-slate-200">Peserta Belum Memulai Ujian</p>
-                        <p class="text-xs text-slate-500">Belum ada riwayat jawaban yang tersimpan untuk ${esc(p.name)}.</p>
+                        <p class="text-xs text-slate-500">Belum ada riwayat jawaban yang tersimpan di Google Sheets untuk ${esc(p.name)}.</p>
                    </div>`
                 : `<div class="space-y-3">
                     ${filteredRows.length === 0
@@ -2244,28 +2494,28 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
                             <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
                                 <span class="text-[10px] text-slate-500 block">Skor Saat Ini</span>
-                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${p.score !== null ? p.score : computedScore} / 175</strong>
+                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${p.score !== null ? p.score : summary.score} / 175</strong>
                             </div>
                             <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                                 <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Benar</span>
-                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${correct}</strong>
+                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${summary.correct}</strong>
                             </div>
                             <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
                                 <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Salah</span>
-                                <strong class="font-heading text-base text-rose-600 dark:text-rose-400">${wrong}</strong>
+                                <strong class="font-heading text-base text-rose-600 dark:text-rose-400">${summary.wrong}</strong>
                             </div>
                             <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
                                 <span class="text-[10px] text-slate-500 block">Kosong</span>
-                                <strong class="font-heading text-base text-slate-700 dark:text-slate-300">${blank}</strong>
+                                <strong class="font-heading text-base text-slate-700 dark:text-slate-300">${summary.blank}</strong>
                             </div>
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
                             <div class="flex flex-wrap gap-1.5">
                                 ${filterBtn('all', 'Semua', 35)}
-                                ${filterBtn('correct', 'Benar', correct)}
-                                ${filterBtn('wrong', 'Salah', wrong)}
-                                ${filterBtn('blank', 'Kosong', blank)}
+                                ${filterBtn('correct', 'Benar', summary.correct)}
+                                ${filterBtn('wrong', 'Salah', summary.wrong)}
+                                ${filterBtn('blank', 'Kosong', summary.blank)}
                             </div>
                             <span class="text-[11px] text-slate-500">Status: <strong>${esc(p.status)}</strong> • Ruang ${esc(p.room)}</span>
                         </div>
@@ -2315,62 +2565,88 @@
             });
         }
 
-        function saveNewParticipant() {
+        async function saveNewParticipant() {
             const id = document.getElementById('new-p-id').value.trim();
             const name = document.getElementById('new-p-name').value.trim();
             const room = document.getElementById('new-p-room').value.trim();
             if (!id || !name) { showToast('Nomor peserta dan nama wajib diisi.', 'warning'); return; }
-            state.participants.unshift({ id, name, room, status: 'Belum Dimulai', progress: 0, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: null, timeLeft: `${state.settings.durationMinutes}:00`, answers: {} });
-            addAuditLog(state.currentUser.name, state.currentUser.role, `Menambahkan peserta baru ${name} (${id})`);
-            closeModal();
-            showToast(`Peserta ${name} ditambahkan.`, 'success');
-            renderAdminSection('participants');
+            try {
+                await callApi('adminAddParticipant', { id, name, room });
+                closeModal();
+                showToast(`Peserta ${name} tersimpan ke Google Sheets.`, 'success');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function adminResetParticipant(pid) {
-            const p = state.participants.find(x => x.id === pid);
-            if (!p) return;
-            p.status = 'Belum Dimulai'; p.progress = 0; p.violations = 0; p.locked = false; p.score = null; p.answers = {}; p.timeLeft = `${state.settings.durationMinutes}:00`;
-            addAuditLog(state.currentUser.name, state.currentUser.role, `Mereset sesi peserta ${p.name} (${p.id})`, 'warning');
-            showToast(`Sesi ${p.name} berhasil direset.`, 'info');
-            renderAdminSection(state.activeAdminMenu);
+        async function adminResetParticipant(pid) {
+            try {
+                await callApi('adminResetParticipant', { participantId: pid });
+                showToast(`Sesi ${pid} berhasil direset di Google Sheets.`, 'info');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function adminDeleteParticipant(pid) {
-            state.participants = state.participants.filter(x => x.id !== pid);
-            addAuditLog(state.currentUser.name, state.currentUser.role, `Menghapus peserta ${pid}`, 'warning');
-            showToast(`Peserta ${pid} dihapus.`, 'info');
-            renderAdminSection('participants');
+        async function adminDeleteParticipant(pid) {
+            try {
+                await callApi('adminDeleteParticipant', { participantId: pid });
+                showToast(`Peserta ${pid} dihapus dari Google Sheets.`, 'info');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function adminSendWarning(pid) {
-            const p = state.participants.find(x => x.id === pid);
-            if (!p) return;
-            addAuditLog(state.currentUser.name, state.currentUser.role, `Mengirim peringatan pengawas kepada ${p.name} (${p.id})`, 'warning');
-            showToast(`Peringatan terkirim ke ${p.name}.`, 'warning');
+        async function adminSendWarning(pid) {
+            try {
+                await callApi('adminSendWarning', { participantId: pid, message: 'Peringatan Pengawas Ruang' });
+                showToast(`Peringatan terkirim & tercatat untuk ${pid}.`, 'warning');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function adminToggleLock(pid) {
-            const p = state.participants.find(x => x.id === pid);
-            if (!p) return;
-            p.locked = !p.locked;
-            p.status = p.locked ? 'Terkunci' : 'Sedang Berlangsung';
-            addAuditLog(state.currentUser.name, state.currentUser.role, `${p.locked ? 'Mengunci' : 'Membuka kunci'} sesi ${p.name} (${p.id})`, 'warning');
-            showToast(`Sesi ${p.name} ${p.locked ? 'dikunci' : 'dibuka kembali'}.`, 'info');
-            renderAdminSection(state.activeAdminMenu);
+        async function adminToggleLock(pid) {
+            try {
+                const res = await callApi('adminToggleLock', { participantId: pid });
+                showToast(`Sesi ${pid} ${res.isLocked ? 'dikunci' : 'dibuka kembali'} di Google Sheets.`, 'info');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
-        function saveAdminSettings() {
-            state.settings.orgName = document.getElementById('set-org').value.trim() || state.settings.orgName;
-            state.settings.durationMinutes = Math.max(5, parseInt(document.getElementById('set-dur').value) || 45);
-            state.settings.maxViolations = Math.max(1, parseInt(document.getElementById('set-viol').value) || 3);
-            addAuditLog(state.currentUser.name, state.currentUser.role, 'Memperbarui pengaturan global ujian', 'info');
-            showToast('Pengaturan berhasil disimpan.', 'success');
+        async function saveAdminSettings() {
+            const orgName = document.getElementById('set-org').value.trim() || state.settings.orgName;
+            const durationMinutes = Math.max(5, parseInt(document.getElementById('set-dur').value) || 45);
+            const maxViolations = Math.max(1, parseInt(document.getElementById('set-viol').value) || 3);
+            try {
+                await callApi('updateSettings', { orgName, durationMinutes, maxViolations });
+                showToast('Pengaturan tersimpan permanen di Google Sheets.', 'success');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function createCloudBackup() {
+            try {
+                showToast('Membuat salinan backup di Google Drive...', 'info');
+                const res = await callApi('createBackup');
+                showToast(`Backup berhasil dibuat: ${res.fileName}`, 'success');
+                await refreshAdminData(false);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
         function exportReportCSV() {
             const header = ['No Peserta', 'Nama', 'Ruang', 'Status', 'Progress', 'Pelanggaran', 'Skor TIU'];
-            const rows = state.participants.map(p => [p.id, `"${p.name}"`, p.room, p.status, `${p.progress}/35`, p.violations, p.score ?? '-'].join(','));
+            const rows = state.participants.map(p => [p.id, `"${p.name}"`, p.room, p.status, `${p.progress || 0}/35`, p.violations || 0, p.score ?? '-'].join(','));
             const csv = [header.join(','), ...rows].join('\n');
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -2382,39 +2658,20 @@
             showToast('Laporan CSV berhasil diunduh.', 'success');
         }
 
-        function seedDemoParticipantAnswers() {
-            const wrongAlt = { A: 'B', B: 'C', C: 'D', D: 'E', E: 'A' };
-            state.participants.forEach(p => {
-                if (p.answers && Object.keys(p.answers).length > 0) return;
-                p.answers = {};
-                if (p.id === '2026-TIU-005') {
-                    // Rizky Ramadhan: Selesai, Skor 145 (29 benar, 6 salah)
-                    const wrongIds = [4, 11, 18, 22, 25, 31];
-                    state.questions.forEach(q => {
-                        p.answers[q.id] = wrongIds.includes(q.id) ? wrongAlt[q.answer] : q.answer;
-                    });
-                } else if (p.progress > 0) {
-                    state.questions.slice(0, p.progress).forEach((q, idx) => {
-                        p.answers[q.id] = (idx % 4 === 3) ? wrongAlt[q.answer] : q.answer;
-                    });
-                }
-            });
-        }
-
-        // Network status indicator
+        // Network status indicator + Auto-flush offline answers
         window.addEventListener('online', () => {
             const el = document.getElementById('exam-net-badge');
             if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online`;
-            showToast('Koneksi internet kembali online.', 'success');
+            showToast('Koneksi kembali online. Menyinkronkan jawaban tertunda...', 'success');
+            flushPendingAnswers();
         });
         window.addEventListener('offline', () => {
             const el = document.getElementById('exam-net-badge');
             if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Offline`;
-            showToast('Koneksi terputus! Jawaban disimpan sementara di perangkat.', 'warning');
+            showToast('Koneksi terputus! Jawaban disimpan sementara di antrean perangkat.', 'warning');
         });
 
         window.onload = function () {
-            seedDemoParticipantAnswers();
             lucide.createIcons();
             setLoginPortal('peserta');
         };
