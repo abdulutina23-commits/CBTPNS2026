@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART CBT — Smart Computer Based Testing System</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#060a14',
+                            900: '#0b1222',
+                            800: '#131d35',
+                            700: '#1e2c4a',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .fade-in { animation: fadeIn 0.22s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.6); }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #ffffff !important; color: #0f172a !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 selection:bg-emerald-500 selection:text-white">
+
+    <!-- ==================== GLOBAL TOAST CONTAINER ==================== -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
+
+    <!-- ==================== GLOBAL CUSTOM MODAL (NO alert/confirm) ==================== -->
+    <div id="app-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 no-print">
+        <div id="modal-dialog-box" class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden fade-in">
+            <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div id="modal-icon-wrap" class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
+                        <i id="modal-icon" data-lucide="info" class="w-4 h-4"></i>
+                    </div>
+                    <h3 id="modal-title" class="font-heading font-bold text-sm md:text-base text-slate-900 dark:text-white">Informasi</h3>
+                </div>
+                <button onclick="closeModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-navy-800 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-5 text-sm text-slate-600 dark:text-slate-300 max-h-[72vh] overflow-y-auto"></div>
+            <div id="modal-footer" class="px-5 py-3.5 bg-slate-50 dark:bg-navy-950/70 border-t border-slate-200 dark:border-slate-800 flex flex-wrap justify-end gap-2"></div>
+        </div>
+    </div>
+
+    <!-- ==================== VIEW 1: LOGIN PORTAL ==================== -->
+    <section id="view-login" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <!-- Ambient Orbs -->
+        <div class="fixed -top-24 -left-24 w-96 h-96 bg-emerald-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="fixed -bottom-24 -right-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative z-10 fade-in">
+            <!-- Left Branding Panel -->
+            <div class="lg:col-span-5 bg-gradient-to-br from-navy-900 via-navy-950 to-slate-900 text-white p-7 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(#10b98118_1px,transparent_1px)] [background-size:20px_20px]"></div>
+                <div class="relative z-10 space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                                <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <div class="font-heading font-extrabold text-lg tracking-tight leading-none">SMART CBT</div>
+                                <div class="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase mt-0.5">Exam & Proctoring</div>
+                            </div>
+                        </div>
+                        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition" title="Ganti Mode Terang/Gelap">
+                            <i data-lucide="sun-moon" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> Fase 1 • Mode Demo Interaktif
+                        </span>
+                        <h1 class="font-heading font-bold text-2xl leading-snug">Sistem Ujian Daring & Pengawasan Terintegrasi</h1>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Dilengkapi <strong>35 Soal Tes Diagnostik TIU CPNS (Bagian 1.5)</strong>, kontrol token oleh pengawas, autosave berversi, deteksi pindah tab, dan riwayat pembahasan lengkap.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2.5 pt-2 text-xs text-slate-300">
+                        <div class="flex items-center gap-2.5 bg-white/5 p-2.5 rounded-xl border border-white/10">
+                            <i data-lucide="calendar-clock" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+                            <div>
+                                <div class="font-semibold text-white">Jadwal Aktif • Tahun 2026</div>
+                                <div class="text-[11px] text-slate-400">Tes Potensi Dasar (TIU) — 35 Soal / 45 Menit</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5 bg-white/5 p-2.5 rounded-xl border border-white/10">
+                            <i data-lucide="headset" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                            <div>
+                                <div class="font-semibold text-white">Bantuan Teknis Panitia</div>
+                                <div class="text-[11px] text-slate-400">helpdesk@smartcbt.id • WA 0859-6436-5248</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 pt-6 mt-6 border-t border-white/10 text-[11px] text-slate-400 flex items-center justify-between">
+                    <span>© 2026 SMART CBT System</span>
+                    <span class="text-emerald-400 font-semibold">v1.2 Stable</span>
+                </div>
+            </div>
+
+            <!-- Right Login Form Panel -->
+            <div class="lg:col-span-7 p-7 md:p-9 flex flex-col justify-center">
+                <!-- Portal Switcher -->
+                <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-navy-950 rounded-2xl border border-slate-200 dark:border-slate-800 mb-6">
+                    <button id="btn-portal-peserta" onclick="setLoginPortal('peserta')" class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow">
+                        <i data-lucide="user-check" class="w-4 h-4"></i> Portal Peserta
+                    </button>
+                    <button id="btn-portal-admin" onclick="setLoginPortal('admin')" class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-navy-800">
+                        <i data-lucide="shield" class="w-4 h-4"></i> Admin / Pengawas
+                    </button>
+                </div>
+
+                <div class="mb-5">
+                    <h2 id="login-heading" class="font-heading font-bold text-xl text-slate-900 dark:text-white">Masuk Portal Peserta Ujian</h2>
+                    <p id="login-subheading" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis terdaftar di sistem panitia.
+                    </p>
+                </div>
+
+                <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                    <div>
+                        <label id="login-user-label" for="login-username" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama Lengkap Peserta</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input id="login-username" type="text" required placeholder="Contoh: Abdul Rahman Utina"
+                                class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label id="login-pass-label" for="login-password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password Akses</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input id="login-password" type="password" required placeholder="Masukkan password (CPNS2026)"
+                                class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-heading font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Sekarang
+                    </button>
+                </form>
+
+                <!-- Quick Demo Credentials -->
+                <div class="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Akses Cepat Uji Coba:</div>
+                    <div id="quick-login-peserta" class="flex flex-wrap gap-2">
+                        <button type="button" onclick="fillDemoLogin('peserta', 'Abdul Rahman Utina', 'CPNS2026')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition">
+                            Isi Cepat Peserta (CPNS2026)
+                        </button>
+                    </div>
+                    <div id="quick-login-admin" class="hidden flex-wrap gap-2">
+                        <button type="button" onclick="fillDemoLogin('admin', 'superadmin', 'ADMIN2026')" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-semibold transition">
+                            Super Admin
+                        </button>
+                        <button type="button" onclick="fillDemoLogin('admin', 'admin', 'ADMIN2026')" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition">
+                            Admin Ujian
+                        </button>
+                        <button type="button" onclick="fillDemoLogin('admin', 'pengawas', 'PROCTOR2026')" class="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-semibold transition">
+                            Pengawas Ruang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== VIEW 2: PARTICIPANT DASHBOARD ==================== -->
+    <section id="view-participant" class="hidden min-h-screen flex-col">
+        <!-- Topbar -->
+        <header class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="font-heading font-bold text-sm text-slate-900 dark:text-white leading-none">SMART CBT</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Portal Peserta Ujian</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <div class="hidden sm:block text-right">
+                        <div id="p-top-name" class="text-xs font-bold text-slate-900 dark:text-white">-</div>
+                        <div id="p-top-id" class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">-</div>
+                    </div>
+                    <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 hover:text-emerald-500 transition">
+                        <i data-lucide="sun-moon" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="logout()" class="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl w-full mx-auto px-4 py-6 space-y-6 flex-1 fade-in">
+            <!-- Profile Banner -->
+            <div class="bg-gradient-to-r from-navy-900 to-navy-800 text-white rounded-3xl p-6 border border-slate-700/60 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div id="p-avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center font-heading font-extrabold text-xl text-white shadow-lg shrink-0">P</div>
+                    <div>
+                        <span class="text-[11px] uppercase tracking-wider font-semibold text-emerald-400">Peserta Terdaftar Otomatis</span>
+                        <h1 id="p-welcome-name" class="font-heading font-bold text-xl md:text-2xl">-</h1>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            No. Peserta: <span id="p-welcome-id" class="font-mono text-cyan-300 font-semibold">-</span> • Ruang: <span id="p-welcome-room" class="font-semibold">Lab-A</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="px-4 py-2.5 rounded-2xl bg-white/10 border border-white/15 text-right">
+                        <div class="text-[10px] uppercase text-slate-300">Status Sesi</div>
+                        <div id="p-status-badge" class="text-sm font-bold text-emerald-400">Belum Dimulai</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Exam Card + Token Gate -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-8 bg-white dark:bg-navy-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">PAKET UJIAN AKTIF</span>
+                            <h2 class="font-heading font-bold text-xl text-slate-900 dark:text-white mt-2">TES POTENSI DASAR (TIU CPNS) — 35 SOAL</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sumber: Modul Belajar TIU CPNS Bagian 1.5 • Durasi 45 Menit • Tanpa Kalkulator</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-navy-950 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i> 45 Menit
+                        </div>
+                    </div>
+
+                    <!-- 3 Domain Distribution Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+                            <div class="font-bold text-emerald-600 dark:text-emerald-400">1. Verbal — 12 Soal</div>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Analogi (4), Silogisme (4), Analitis (4) • No. 1–12</p>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/25">
+                            <div class="font-bold text-cyan-600 dark:text-cyan-400">2. Numerik — 14 Soal</div>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Berhitung (4), Deret (3), Perbandingan (3), Cerita (4) • No. 13–26</p>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/25">
+                            <div class="font-bold text-purple-600 dark:text-purple-400">3. Figural — 9 Soal</div>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Analogi (3), Ketidaksamaan (3), Serial (3) • No. 27–35</p>
+                        </div>
+                    </div>
+
+                    <!-- Token Gate Box -->
+                    <div id="participant-token-section" class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 space-y-4">
+                        <!-- Dynamically rendered by renderParticipantTokenBox() -->
+                    </div>
+                </div>
+
+                <!-- Rules Sidebar -->
+                <div class="lg:col-span-4 bg-white dark:bg-navy-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="scroll-text" class="w-4 h-4 text-amber-500"></i> Tata Tertib & Aturan Ujian
+                    </h3>
+                    <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2.5 leading-relaxed">
+                        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i><span>Durasi pengerjaan <strong>45 menit</strong> untuk 35 soal (anjuran 60–90 detik/soal).</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i><span>Kalkulator dan bantuan pihak lain <strong>tidak diperbolehkan</strong>.</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i><span>Penilaian acuan 2024: <strong>Benar = +5</strong>, Salah / Kosong = 0. Ambang batas umum: 80 poin.</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i><span><strong>Dilarang berpindah tab</strong> selama ujian. Pelanggaran ke-3 akan mengunci sesi otomatis.</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="video" class="w-4 h-4 text-cyan-500 shrink-0 mt-0.5"></i><span>Kamera pengawasan hanya aktif setelah persetujuan eksplisit Anda pada halaman persiapan.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ==================== VIEW 3: PRE-EXAM DEVICE & CAMERA CHECK ==================== -->
+    <section id="view-prep" class="hidden min-h-screen flex-col items-center justify-center p-4">
+        <div class="max-w-4xl w-full bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl p-6 md:p-8 space-y-6 fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Pemeriksaan Pra-Ujian (10 Poin)</span>
+                    <h2 class="font-heading font-bold text-xl text-slate-900 dark:text-white">Verifikasi Perangkat, Kamera & Tata Tertib</h2>
+                </div>
+                <button onclick="showView('participant')" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-navy-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition">
+                    Kembali
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Camera Preview -->
+                <div class="lg:col-span-5 space-y-3">
+                    <div class="aspect-video bg-navy-950 rounded-2xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                        <video id="prep-camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+                        <div id="prep-camera-placeholder" class="text-center p-4 space-y-2">
+                            <i data-lucide="camera-off" class="w-10 h-10 text-slate-500 mx-auto"></i>
+                            <p class="text-xs text-slate-400">Kamera belum diaktifkan.<br>Klik "Aktifkan Kamera" untuk memberikan izin.</p>
+                        </div>
+                        <span id="prep-camera-badge" class="hidden absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-600 text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Kamera Aktif
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="requestParticipantCamera()" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="camera" class="w-4 h-4"></i> Aktifkan Kamera
+                        </button>
+                        <button onclick="grantCameraException()" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+                            Tanpa Kamera (Izin Admin)
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <strong>Privasi Pengawasan:</strong> Kamera tidak pernah diaktifkan secara tersembunyi dan tidak direkam secara default. Akses hanya untuk pengawas berwenang selama sesi berlangsung.
+                    </p>
+                </div>
+
+                <!-- 10 Checklist Items -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" id="prep-checklist"></div>
+
+                    <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                        <input id="prep-agree-checkbox" type="checkbox" onchange="updatePrepProceedButton()" class="mt-0.5 w-4 h-4 rounded accent-emerald-600">
+                        <span class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                            Saya menyetujui <strong>Tata Tertib Ujian</strong> dan <strong>Kebijakan Privasi Pengawasan</strong>, serta siap mengerjakan ujian secara jujur tanpa bantuan.
+                        </span>
+                    </label>
+
+                    <button id="btn-start-exam-now" disabled onclick="beginExamSession()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 disabled:opacity-40 disabled:cursor-not-allowed hover:from-emerald-500 hover:to-cyan-500 text-white font-heading font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition">
+                        <i data-lucide="play-circle" class="w-5 h-5"></i> Lanjutkan & Mulai Mengerjakan Soal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== VIEW 4: EXAM INTERFACE ==================== -->
+    <section id="view-exam" class="hidden min-h-screen flex-col bg-slate-100 dark:bg-navy-950">
+        <!-- Exam Sticky Header -->
+        <header class="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-heading font-bold text-sm">TIU</div>
+                    <div>
+                        <div class="font-heading font-bold text-sm text-slate-900 dark:text-white leading-tight">TES POTENSI DASAR — 35 SOAL</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                            <span id="exam-p-name" class="font-semibold text-slate-700 dark:text-slate-200">-</span> • <span id="exam-p-id" class="font-mono">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Connection -->
+                    <span id="exam-net-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
+                    </span>
+                    <!-- Autosave -->
+                    <span id="exam-save-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Tersimpan
+                    </span>
+                    <!-- Violations -->
+                    <span id="exam-viol-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        Pelanggaran: 0/3
+                    </span>
+                    <!-- Timer -->
+                    <div id="exam-timer-box" class="px-3.5 py-1.5 rounded-xl bg-navy-900 dark:bg-emerald-600/20 text-white dark:text-emerald-300 border border-emerald-500/40 font-mono font-bold text-sm flex items-center gap-1.5">
+                        <i data-lucide="timer" class="w-4 h-4 text-amber-400"></i>
+                        <span id="exam-timer-display">45:00</span>
+                    </div>
+                    <!-- Mobile Nav Drawer Button -->
+                    <button onclick="toggleMobileNavDrawer()" class="lg:hidden px-3 py-1.5 rounded-xl bg-cyan-600 text-white text-xs font-bold flex items-center gap-1.5">
+                        <i data-lucide="grid" class="w-4 h-4"></i> Soal
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Locked Overlay (If 3 violations or Admin Lock) -->
+        <div id="exam-locked-overlay" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md items-center justify-center p-4">
+            <div class="max-w-md w-full bg-navy-900 border border-rose-500/40 rounded-3xl p-7 text-center space-y-4 shadow-2xl">
+                <div class="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+                    <i data-lucide="lock" class="w-7 h-7"></i>
+                </div>
+                <h2 class="font-heading font-bold text-xl text-white">Sesi Ujian Terkunci</h2>
+                <p id="exam-locked-reason" class="text-xs text-slate-300 leading-relaxed">
+                    Sesi Anda dikunci otomatis karena pelanggaran perpindahan tab mencapai batas maksimal. Jawaban Anda yang telah tersimpan tetap aman.
+                </p>
+                <div class="p-3 rounded-xl bg-navy-950 border border-slate-800 text-[11px] text-slate-400">
+                    Hubungi pengawas ruang untuk verifikasi dan pembukaan kunci sesi.
+                </div>
+                <div class="flex gap-2 justify-center pt-2">
+                    <button onclick="logout()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold">Kembali ke Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2-Column Exam Workspace -->
+        <div class="max-w-7xl w-full mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+            <!-- Left: Question Panel -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div id="question-card" class="bg-white dark:bg-navy-900 rounded-3xl p-5 md:p-7 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 flex-1">
+                    <!-- Rendered dynamically by renderCurrentQuestion() -->
+                </div>
+
+                <!-- Bottom Navigation Bar -->
+                <div class="bg-white dark:bg-navy-900 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                    <button onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 dark:hover:bg-navy-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i> Sebelumnya
+                    </button>
+
+                    <button id="btn-doubt-toggle" onclick="toggleDoubtCurrent()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="flag" class="w-4 h-4"></i> Tandai Ragu-ragu
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="nextQuestion()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                            Selanjutnya <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="confirmFinishExam()" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                            <i data-lucide="check-check" class="w-4 h-4"></i> Selesai
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Navigation Grid & Camera Mini Preview -->
+            <aside id="exam-nav-panel" class="hidden lg:flex lg:col-span-4 flex-col gap-4">
+                <!-- Camera Mini Preview -->
+                <div class="bg-white dark:bg-navy-900 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                    <div class="w-24 h-16 rounded-xl bg-navy-950 overflow-hidden relative shrink-0 flex items-center justify-center border border-slate-700">
+                        <video id="exam-camera-mini" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+                        <i id="exam-camera-icon" data-lucide="video-off" class="w-5 h-5 text-slate-500"></i>
+                    </div>
+                    <div class="text-xs">
+                        <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span id="exam-cam-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            <span id="exam-cam-status">Kamera Nonaktif</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Pengawasan aktif sesuai izin peserta.</p>
+                    </div>
+                </div>
+
+                <!-- Question Grid -->
+                <div class="bg-white dark:bg-navy-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 flex-1">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Navigasi Nomor Soal</h3>
+                        <span id="nav-progress-pct" class="text-xs font-bold text-emerald-600 dark:text-emerald-400">0%</span>
+                    </div>
+
+                    <div class="w-full h-2 bg-slate-100 dark:bg-navy-950 rounded-full overflow-hidden">
+                        <div id="nav-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                        <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">Terjawab: <span id="stat-answered">0</span></div>
+                        <div class="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">Ragu: <span id="stat-doubt">0</span></div>
+                        <div class="p-2 rounded-xl bg-slate-100 dark:bg-navy-950 text-slate-500 font-bold">Kosong: <span id="stat-blank">35</span></div>
+                    </div>
+
+                    <div id="nav-grid" class="grid grid-cols-5 sm:grid-cols-7 lg:grid-cols-5 gap-2"></div>
+
+                    <div class="pt-3 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500"></span> Sudah Dijawab</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400"></span> Ragu-ragu</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600"></span> Sedang Dibuka</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-300 dark:bg-slate-700"></span> Belum Dijawab</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Mobile Drawer for Question Navigation -->
+        <div id="mobile-nav-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm lg:hidden items-end">
+            <div class="bg-white dark:bg-navy-900 w-full rounded-t-3xl p-5 max-h-[80vh] overflow-y-auto space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-heading font-bold text-sm">Navigasi Nomor Soal (1–35)</h3>
+                    <button onclick="toggleMobileNavDrawer()" class="p-1.5 rounded-lg bg-slate-100 dark:bg-navy-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="mobile-nav-grid" class="grid grid-cols-7 gap-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== VIEW 5: EXAM RESULT ==================== -->
+    <section id="view-result" class="hidden min-h-screen flex-col items-center justify-center p-4">
+        <div id="result-container" class="max-w-4xl w-full bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 fade-in"></div>
+    </section>
+
+    <!-- ==================== VIEW 6: ADMIN & PROCTOR PORTAL ==================== -->
+    <section id="view-admin" class="hidden min-h-screen bg-navy-950 text-slate-100">
+        <div class="flex min-h-screen">
+            <!-- Sidebar -->
+            <aside id="admin-sidebar" class="w-64 bg-navy-900 border-r border-slate-800 flex-col shrink-0 hidden lg:flex no-print">
+                <div class="p-4 border-b border-slate-800 flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="font-heading font-extrabold text-sm text-white leading-none">SMART CBT</div>
+                        <div id="admin-role-label" class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mt-0.5">Super Admin</div>
+                    </div>
+                </div>
+                <nav id="admin-menu-list" class="p-3 space-y-1 flex-1 overflow-y-auto text-xs"></nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Admin Topbar -->
+                <header class="bg-navy-900/90 backdrop-blur border-b border-slate-800 px-4 md:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-20 no-print">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleAdminMobileMenu()" class="lg:hidden p-2 rounded-xl bg-navy-800 text-slate-300">
+                            <i data-lucide="menu" class="w-5 h-5"></i>
+                        </button>
+                        <div>
+                            <h1 id="admin-page-title" class="font-heading font-bold text-base text-white">Dashboard</h1>
+                            <p class="text-[11px] text-slate-400">Mode Demo Fase 1 • Data In-Memory (GAS & SFU pada Fase 2 & 5)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistem Aktif
+                        </span>
+                        <button onclick="renderAdminSection(state.activeAdminMenu)" class="p-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-300 transition" title="Refresh Data">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Admin Mobile Nav Overlay -->
+                <div id="admin-mobile-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 lg:hidden">
+                    <div class="w-64 bg-navy-900 h-full p-4 flex flex-col">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <span class="font-heading font-bold text-sm text-white">Menu Navigasi</span>
+                            <button onclick="toggleAdminMobileMenu()" class="p-1.5 rounded-lg bg-navy-800 text-slate-300"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                        <nav id="admin-mobile-menu-list" class="mt-3 space-y-1 flex-1 overflow-y-auto text-xs"></nav>
+                    </div>
+                </div>
+
+                <!-- Dynamic Content Area -->
+                <main id="admin-content-area" class="p-4 md:p-6 space-y-5 flex-1 overflow-x-hidden"></main>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== APPLICATION JAVASCRIPT ==================== -->
+    <script>
+        /* =====================================================================
+           1. SVG GENERATOR HELPERS FOR 9 FIGURAL QUESTIONS (NO. 27 - 35 PDF 1.5)
+           ===================================================================== */
+        function svgBox(inner, size = 76) {
+            return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" class="bg-white rounded-lg border-2 border-slate-800 shrink-0">${inner}</svg>`;
+        }
+        function svgArrow(text = '→') {
+            return `<span class="font-bold text-slate-700 text-lg px-1 select-none">${text}</span>`;
+        }
+        function triInCorner(corner, dir) {
+            const pos = { tl: [26, 26], tr: [74, 26], br: [74, 74], bl: [26, 74] }[corner];
+            const rot = { up: 0, right: 90, down: 180, left: 270 }[dir];
+            return `<g transform="translate(${pos[0]},${pos[1]}) rotate(${rot})"><polygon points="0,-16 15,14 -15,14" fill="#0f172a"/></g>`;
+        }
+        function grid2x2(filled) {
+            const cells = [
+                { k: 'tl', x: 0, y: 0 }, { k: 'tr', x: 50, y: 0 },
+                { k: 'bl', x: 0, y: 50 }, { k: 'br', x: 50, y: 50 }
+            ];
+            return cells.map(c => `<rect x="${c.x}" y="${c.y}" width="50" height="50" fill="${filled.includes(c.k) ? '#0f172a' : '#ffffff'}" stroke="#0f172a" stroke-width="3"/>`).join('');
+        }
+        function regularPoly(sides, cx = 50, cy = 50, r = 36, fill = 'none') {
+            const pts = [];
+            for (let i = 0; i < sides; i++) {
+                const a = (i * 2 * Math.PI / sides) - Math.PI / 2;
+                pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
+            }
+            return `<polygon points="${pts.join(' ')}" fill="${fill}" stroke="#0f172a" stroke-width="4"/>`;
+        }
+        function dotsInside(count) {
+            const layouts = {
+                1: [[50, 50]],
+                2: [[40, 50], [60, 50]],
+                3: [[40, 44], [60, 44], [50, 62]],
+                4: [[40, 42], [60, 42], [40, 60], [60, 60]]
+            };
+            return (layouts[count] || []).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.5" fill="#0f172a"/>`).join('');
+        }
+        function grid3x3(cells) {
+            let out = '';
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const idx = r * 3 + c;
+                    out += `<rect x="${5 + c * 30}" y="${5 + r * 30}" width="30" height="30" fill="${cells.includes(idx) ? '#0f172a' : '#ffffff'}" stroke="#0f172a" stroke-width="2.5"/>`;
+                }
+            }
+            return out;
+        }
+        function arrowWithDot(arrowDir, dotSide) {
+            const rot = { up: 0, right: 90, down: 180, left: 270 }[arrowDir];
+            const dotPos = { top: [50, 18], right: [82, 50], bottom: [50, 82], left: [18, 50] }[dotSide];
+            return `
+                <g transform="translate(50,50) rotate(${rot})">
+                    <line x1="0" y1="20" x2="0" y2="-16" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+                    <polygon points="0,-24 -10,-10 10,-10" fill="#0f172a"/>
+                </g>
+                <circle cx="${dotPos[0]}" cy="${dotPos[1]}" r="6.5" fill="#0f172a"/>
+            `;
+        }
+        function dotAndBar(corner, barOrient) {
+            const pos = { tl: [20, 20], tr: [80, 20], br: [80, 80], bl: [20, 80] }[corner];
+            const bar = barOrient === 'v'
+                ? `<line x1="50" y1="34" x2="50" y2="66" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>`
+                : `<line x1="34" y1="50" x2="66" y2="50" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>`;
+            return `<circle cx="${pos[0]}" cy="${pos[1]}" r="7" fill="#0f172a"/>${bar}`;
+        }
+        function diagLineAndDot(angle, side) {
+            const dx = side === 'left' ? 22 : 78;
+            return `
+                <g transform="translate(50,50) rotate(${angle})">
+                    <line x1="0" y1="-26" x2="0" y2="26" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+                </g>
+                <circle cx="${dx}" cy="50" r="6.5" fill="#0f172a"/>
+            `;
+        }
+
+        /* =====================================================================
+           2. BANK 35 SOAL TES DIAGNOSTIK TIU (BAGIAN 1.5, 1.6, 1.7 PDF)
+           ===================================================================== */
+        const TIU_QUESTIONS = [
+            // --- VERBAL: ANALOGI (1-4) ---
+            { id: 1, domain: 'Verbal', sub: 'Analogi', text: 'KOMPAS : ARAH = TERMOMETER : ...', options: [{ key: 'A', label: 'Suhu' }, { key: 'B', label: 'Tekanan' }, { key: 'C', label: 'Waktu' }, { key: 'D', label: 'Panjang' }, { key: 'E', label: 'Massa' }], answer: 'A', explanation: 'Kompas adalah alat untuk menunjukkan arah; termometer adalah alat untuk mengukur suhu (relasi alat → besaran yang diukur).' },
+            { id: 2, domain: 'Verbal', sub: 'Analogi', text: 'ARSITEK : BANGUNAN = KOMPONIS : ...', options: [{ key: 'A', label: 'Lagu' }, { key: 'B', label: 'Panggung' }, { key: 'C', label: 'Suara' }, { key: 'D', label: 'Penonton' }, { key: 'E', label: 'Alat musik' }], answer: 'A', explanation: 'Arsitek menghasilkan rancangan bangunan; komponis menghasilkan karya berupa lagu/komposisi musik (pelaku kreatif → produk utama).' },
+            { id: 3, domain: 'Verbal', sub: 'Analogi', text: 'BAB : BUKU = ADEGAN : ...', options: [{ key: 'A', label: 'Naskah' }, { key: 'B', label: 'Film' }, { key: 'C', label: 'Aktor' }, { key: 'D', label: 'Kamera' }, { key: 'E', label: 'Layar' }], answer: 'B', explanation: 'Bab merupakan bagian struktural dari buku; adegan merupakan bagian struktural dari film (bagian → keseluruhan).' },
+            { id: 4, domain: 'Verbal', sub: 'Analogi', text: 'ASAP : KEBAKARAN = GENANGAN : ...', options: [{ key: 'A', label: 'Saluran' }, { key: 'B', label: 'Kemarau' }, { key: 'C', label: 'Hujan' }, { key: 'D', label: 'Tanah' }, { key: 'E', label: 'Angin' }], answer: 'C', explanation: 'Asap muncul sebagai akibat kebakaran; genangan muncul sebagai akibat hujan (akibat → penyebab).' },
+
+            // --- VERBAL: SILOGISME (5-8) ---
+            { id: 5, domain: 'Verbal', sub: 'Silogisme', text: 'Semua analis data teliti. Sebagian peserta pelatihan adalah analis data. Simpulan yang pasti benar adalah ...', options: [{ key: 'A', label: 'Semua peserta pelatihan teliti.' }, { key: 'B', label: 'Sebagian peserta pelatihan teliti.' }, { key: 'C', label: 'Sebagian orang teliti bukan analis data.' }, { key: 'D', label: 'Tidak ada peserta pelatihan yang teliti.' }, { key: 'E', label: 'Semua orang teliti adalah analis data.' }], answer: 'B', explanation: 'Sebagian peserta pelatihan yang merupakan analis data pasti termasuk kelompok teliti. Kuantor "sebagian" tidak boleh diperluas menjadi "semua".' },
+            { id: 6, domain: 'Verbal', sub: 'Silogisme', text: 'Tidak ada arsip digital yang dicetak. Semua laporan Divisi X adalah arsip digital. Simpulan yang pasti benar adalah ...', options: [{ key: 'A', label: 'Sebagian laporan Divisi X dicetak.' }, { key: 'B', label: 'Semua dokumen tercetak adalah laporan Divisi X.' }, { key: 'C', label: 'Tidak ada laporan Divisi X yang dicetak.' }, { key: 'D', label: 'Sebagian arsip digital bukan laporan Divisi X.' }, { key: 'E', label: 'Semua arsip digital adalah laporan Divisi X.' }], answer: 'C', explanation: 'Semua laporan Divisi X masuk himpunan arsip digital, sedangkan tidak ada arsip digital yang dicetak. Maka tidak ada laporan Divisi X yang dicetak.' },
+            { id: 7, domain: 'Verbal', sub: 'Silogisme', text: 'Semua petugas loket mengenakan tanda pengenal. Tidak seorang pun yang mengenakan tanda pengenal berada di ruang steril. Simpulan yang pasti benar adalah ...', options: [{ key: 'A', label: 'Sebagian petugas loket berada di ruang steril.' }, { key: 'B', label: 'Tidak ada petugas loket yang berada di ruang steril.' }, { key: 'C', label: 'Semua orang di ruang steril adalah petugas loket.' }, { key: 'D', label: 'Sebagian orang tanpa tanda pengenal adalah petugas loket.' }, { key: 'E', label: 'Semua orang di luar ruang steril adalah petugas loket.' }], answer: 'B', explanation: 'Setiap petugas loket mengenakan tanda pengenal, dan pemakai tanda pengenal tidak berada di ruang steril. Maka tidak ada petugas loket di ruang steril.' },
+            { id: 8, domain: 'Verbal', sub: 'Silogisme', text: 'Sebagian proposal adalah dokumen prioritas. Semua dokumen prioritas diperiksa ulang. Simpulan yang pasti benar adalah ...', options: [{ key: 'A', label: 'Semua proposal diperiksa ulang.' }, { key: 'B', label: 'Sebagian proposal diperiksa ulang.' }, { key: 'C', label: 'Tidak ada proposal yang diperiksa ulang.' }, { key: 'D', label: 'Semua dokumen yang diperiksa ulang adalah proposal.' }, { key: 'E', label: 'Sebagian dokumen prioritas tidak diperiksa ulang.' }], answer: 'B', explanation: 'Bagian proposal yang merupakan dokumen prioritas pasti diperiksa ulang, sehingga simpulan sahnya adalah sebagian proposal diperiksa ulang.' },
+
+            // --- VERBAL: ANALITIS (9-12) ---
+            { id: 9, domain: 'Verbal', sub: 'Penalaran Analitis', text: 'Empat berkas N, K, L, dan M diproses satu per satu. K diproses sebelum L. M tepat setelah L. N diproses sebelum K. Berkas yang diproses pada urutan kedua adalah ...', options: [{ key: 'A', label: 'K' }, { key: 'B', label: 'L' }, { key: 'C', label: 'M' }, { key: 'D', label: 'N' }, { key: 'E', label: 'Tidak dapat ditentukan' }], answer: 'A', explanation: 'Blok L–M berdampingan, K sebelum L, dan N sebelum K. Satu-satunya urutan yang sah adalah N – K – L – M, sehingga urutan kedua adalah K.' },
+            { id: 10, domain: 'Verbal', sub: 'Penalaran Analitis', text: 'Lima peserta P, Q, R, S, dan T berdiri dalam satu baris dari kiri ke kanan. R berada paling kiri. Q tepat di sebelah kanan P. S berada di sebelah kanan Q. T tidak berdiri di sebelah R. Siapa yang harus menempati posisi kedua dari kiri?', options: [{ key: 'A', label: 'P' }, { key: 'B', label: 'Q' }, { key: 'C', label: 'S' }, { key: 'D', label: 'T' }, { key: 'E', label: 'Tidak dapat ditentukan' }], answer: 'A', explanation: 'R di posisi 1. T tidak boleh di posisi 2. Blok P–Q harus di kiri S. Jika P di posisi 3, T terpaksa di posisi 2 (melanggar syarat). Maka P wajib di posisi 2.' },
+            { id: 11, domain: 'Verbal', sub: 'Penalaran Analitis', text: 'Enam map A, B, C, D, E, dan F ditempatkan pada dua rak; setiap rak harus berisi tepat tiga map. A dan B berada pada rak yang sama. C tidak boleh satu rak dengan D. D dan E berada pada rak yang sama. Selain E, map yang pasti satu rak dengan D adalah ...', options: [{ key: 'A', label: 'A' }, { key: 'B', label: 'B' }, { key: 'C', label: 'C' }, { key: 'D', label: 'F' }, { key: 'E', label: 'Tidak dapat ditentukan' }], answer: 'D', explanation: 'Rak berisi D dan E hanya butuh 1 map lagi. C dilarang bersama D, sementara pasangan A–B butuh 2 slot. Maka satu-satunya map yang pasti satu rak dengan D adalah F.' },
+            { id: 12, domain: 'Verbal', sub: 'Penalaran Analitis', text: 'Lima presentasi K, L, M, N, dan O dijadwalkan Senin–Jumat, satu presentasi setiap hari. N dijadwalkan Senin. L dijadwalkan Rabu. K sebelum M. O tepat sehari setelah M. Presentasi pada hari Jumat adalah ...', options: [{ key: 'A', label: 'K' }, { key: 'B', label: 'L' }, { key: 'C', label: 'M' }, { key: 'D', label: 'N' }, { key: 'E', label: 'O' }], answer: 'E', explanation: 'N = Senin, L = Rabu. Blok berurutan M–O hanya bisa menempati Kamis–Jumat, dan K di Selasa. Maka presentasi hari Jumat adalah O.' },
+
+            // --- NUMERIK: BERHITUNG (13-16) ---
+            { id: 13, domain: 'Numerik', sub: 'Berhitung', text: 'Nilai dari operasi 3/4 + 5/6 − 1/3 adalah ...', options: [{ key: 'A', label: '3/4' }, { key: 'B', label: '1' }, { key: 'C', label: '5/4' }, { key: 'D', label: '4/3' }, { key: 'E', label: '3/2' }], answer: 'C', explanation: 'Samakan penyebut ke 12: 9/12 + 10/12 − 4/12 = 15/12 = 5/4.' },
+            { id: 14, domain: 'Numerik', sub: 'Berhitung', text: 'Nilai dari operasi 18% × 250 + 15 adalah ...', options: [{ key: 'A', label: '45' }, { key: 'B', label: '50' }, { key: 'C', label: '55' }, { key: 'D', label: '60' }, { key: 'E', label: '65' }], answer: 'D', explanation: '18% × 250 = 0,18 × 250 = 45. Kemudian 45 + 15 = 60.' },
+            { id: 15, domain: 'Numerik', sub: 'Berhitung', text: 'Nilai dari operasi 2⁵ − √81 + 3² adalah ...', options: [{ key: 'A', label: '23' }, { key: 'B', label: '27' }, { key: 'C', label: '30' }, { key: 'D', label: '32' }, { key: 'E', label: '41' }], answer: 'D', explanation: '2⁵ = 32, √81 = 9, dan 3² = 9. Maka 32 − 9 + 9 = 32.' },
+            { id: 16, domain: 'Numerik', sub: 'Berhitung', text: 'Nilai dari operasi (7/12) × (18/35) × 20 adalah ...', options: [{ key: 'A', label: '3' }, { key: 'B', label: '4' }, { key: 'C', label: '5' }, { key: 'D', label: '6' }, { key: 'E', label: '7' }], answer: 'D', explanation: 'Sederhanakan faktor silang: 7/35 = 1/5 dan 18/12 = 3/2. Hasil: (1/5) × (3/2) × 20 = 6.' },
+
+            // --- NUMERIK: DERET ANGKA (17-19) ---
+            { id: 17, domain: 'Numerik', sub: 'Deret Angka', text: 'Tentukan suku berikutnya dari deret: 4, 7, 13, 22, 34, ...', options: [{ key: 'A', label: '46' }, { key: 'B', label: '47' }, { key: 'C', label: '48' }, { key: 'D', label: '49' }, { key: 'E', label: '50' }], answer: 'D', explanation: 'Selisih antarsuku bertambah 3 secara teratur: +3, +6, +9, +12, selanjutnya +15. Jadi 34 + 15 = 49.' },
+            { id: 18, domain: 'Numerik', sub: 'Deret Angka', text: 'Tentukan suku berikutnya dari deret: 96, 48, 52, 26, 30, 15, ...', options: [{ key: 'A', label: '17' }, { key: 'B', label: '18' }, { key: 'C', label: '19' }, { key: 'D', label: '20' }, { key: 'E', label: '21' }], answer: 'C', explanation: 'Operasi berselang ÷2 lalu +4: 96→48→52→26→30→15. Berikutnya 15 + 4 = 19.' },
+            { id: 19, domain: 'Numerik', sub: 'Deret Angka', text: 'Tentukan suku berikutnya dari deret: 2, 5, 4, 10, 6, 15, 8, ...', options: [{ key: 'A', label: '10' }, { key: 'B', label: '16' }, { key: 'C', label: '18' }, { key: 'D', label: '20' }, { key: 'E', label: '24' }], answer: 'D', explanation: 'Dua subderet berselang: posisi ganjil (2, 4, 6, 8) dan posisi genap (5, 10, 15, ...). Suku berikutnya posisi genap = 20.' },
+
+            // --- NUMERIK: PERBANDINGAN KUANTITATIF (20-22) ---
+            { id: 20, domain: 'Numerik', sub: 'Perbandingan Kuantitatif', text: 'Diketahui x > 0; P = x + 1; dan Q = x. Hubungan yang tepat antara P dan Q adalah ...', options: [{ key: 'A', label: 'P > Q' }, { key: 'B', label: 'P < Q' }, { key: 'C', label: 'P = Q' }, { key: 'D', label: 'Hubungan P dan Q tidak dapat ditentukan' }, { key: 'E', label: 'Syarat soal saling bertentangan' }], answer: 'A', explanation: 'Selisih P − Q = (x + 1) − x = 1 > 0, sehingga P > Q selalu berlaku.' },
+            { id: 21, domain: 'Numerik', sub: 'Perbandingan Kuantitatif', text: 'Diketahui 0 < a < 1; P = a²; dan Q = a. Hubungan yang tepat antara P dan Q adalah ...', options: [{ key: 'A', label: 'P > Q' }, { key: 'B', label: 'P < Q' }, { key: 'C', label: 'P = Q' }, { key: 'D', label: 'Hubungan P dan Q tidak dapat ditentukan' }, { key: 'E', label: 'Syarat soal saling bertentangan' }], answer: 'B', explanation: 'Untuk bilangan positif antara 0 dan 1, mengkuadratkan justru memperkecil nilainya (a² < a), sehingga P < Q.' },
+            { id: 22, domain: 'Numerik', sub: 'Perbandingan Kuantitatif', text: 'Diketahui x² = 9; P = x; dan Q = 0. Hubungan yang tepat antara P dan Q adalah ...', options: [{ key: 'A', label: 'P > Q' }, { key: 'B', label: 'P < Q' }, { key: 'C', label: 'P = Q' }, { key: 'D', label: 'Hubungan P dan Q tidak dapat ditentukan' }, { key: 'E', label: 'Syarat soal saling bertentangan' }], answer: 'D', explanation: 'x² = 9 memiliki dua solusi: x = 3 (P > Q) atau x = −3 (P < Q). Karena tanda x tidak ditentukan, hubungan P dan Q tidak dapat ditentukan.' },
+
+            // --- NUMERIK: SOAL CERITA (23-26) ---
+            { id: 23, domain: 'Numerik', sub: 'Soal Cerita', text: 'Dua belas petugas menyelesaikan 360 berkas dalam 5 hari. Dengan produktivitas setiap petugas sama dan tetap, jumlah petugas yang diperlukan untuk menyelesaikan 504 berkas dalam 4 hari adalah ...', options: [{ key: 'A', label: '16' }, { key: 'B', label: '18' }, { key: 'C', label: '20' }, { key: 'D', label: '21' }, { key: 'E', label: '24' }], answer: 'D', explanation: 'Produktivitas = 360 ÷ (12 × 5) = 6 berkas/petugas/hari. Untuk 504 berkas dalam 4 hari dibutuhkan 504 ÷ (6 × 4) = 21 petugas.' },
+            { id: 24, domain: 'Numerik', sub: 'Soal Cerita', text: 'Harga sebuah perangkat adalah Rp800.000. Toko memberikan diskon 15%, kemudian mengenakan pajak 10% dari harga setelah diskon. Jumlah yang harus dibayar adalah ...', options: [{ key: 'A', label: 'Rp680.000' }, { key: 'B', label: 'Rp720.000' }, { key: 'C', label: 'Rp748.000' }, { key: 'D', label: 'Rp760.000' }, { key: 'E', label: 'Rp780.000' }], answer: 'C', explanation: 'Setelah diskon 15%: Rp800.000 × 85% = Rp680.000. Pajak 10%: Rp680.000 × 110% = Rp748.000.' },
+            { id: 25, domain: 'Numerik', sub: 'Soal Cerita', text: 'Sebuah kendaraan menempuh perjalanan 180 km. Jarak 60 km pertama ditempuh dengan kecepatan 40 km/jam dan 120 km berikutnya dengan kecepatan 60 km/jam. Kecepatan rata-rata untuk seluruh perjalanan adalah ...', options: [{ key: 'A', label: '48 km/jam' }, { key: 'B', label: '50 km/jam' }, { key: 'C', label: '51,4 km/jam' }, { key: 'D', label: '52,5 km/jam' }, { key: 'E', label: '54 km/jam' }], answer: 'C', explanation: 't1 = 60/40 = 1,5 jam; t2 = 120/60 = 2 jam. Kecepatan rata-rata = Total jarak / Total waktu = 180 / 3,5 ≈ 51,4 km/jam.' },
+            { id: 26, domain: 'Numerik', sub: 'Soal Cerita', text: 'Dalam sebuah kotak, perbandingan kelereng merah dan putih adalah 3 : 5. Jumlah seluruh kelereng 64. Berapa kelereng merah yang harus ditambahkan agar jumlah kelereng merah dan putih menjadi sama?', options: [{ key: 'A', label: '8' }, { key: 'B', label: '12' }, { key: 'C', label: '16' }, { key: 'D', label: '20' }, { key: 'E', label: '24' }], answer: 'C', explanation: 'Total 8 bagian = 64 (1 bagian = 8). Merah = 24, Putih = 40. Agar sama, merah perlu ditambah 40 − 24 = 16 kelereng.' },
+
+            // --- FIGURAL: ANALOGI (27-29) ---
+            {
+                id: 27, domain: 'Figural', sub: 'Analogi Figural',
+                text: 'Pada pasangan pertama terdapat satu aturan perubahan. Terapkan aturan yang sama pada gambar ketiga.',
+                stimulusSvg: `<div class="flex items-center gap-2 flex-wrap justify-center">${svgBox(triInCorner('tl', 'up'))}${svgArrow('→')}${svgBox(triInCorner('tr', 'right'))}${svgArrow(':')}${svgBox(triInCorner('br', 'left'))}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>')}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(triInCorner('bl', 'up'), 68) },
+                    { key: 'B', svg: svgBox(triInCorner('bl', 'down'), 68) },
+                    { key: 'C', svg: svgBox(triInCorner('tl', 'up'), 68) },
+                    { key: 'D', svg: svgBox(triInCorner('bl', 'right'), 68) },
+                    { key: 'E', svg: svgBox(triInCorner('br', 'up'), 68) }
+                ],
+                answer: 'A',
+                explanation: 'Seluruh isi berputar 90° searah jarum jam: posisi kanan bawah berpindah ke kiri bawah dan arah kiri berubah menjadi atas (Pilihan A).'
+            },
+            {
+                id: 28, domain: 'Figural', sub: 'Analogi Figural',
+                text: 'Pada pasangan pertama terdapat satu aturan perubahan pada kisi 2×2. Terapkan aturan yang sama pada gambar ketiga.',
+                stimulusSvg: `<div class="flex items-center gap-2 flex-wrap justify-center">${svgBox(grid2x2(['tl']))}${svgArrow('→')}${svgBox(grid2x2(['br']))}${svgArrow(':')}${svgBox(grid2x2(['tl', 'bl']))}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>')}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(grid2x2(['tl', 'tr']), 68) },
+                    { key: 'B', svg: svgBox(grid2x2(['bl', 'br']), 68) },
+                    { key: 'C', svg: svgBox(grid2x2(['tr', 'br']), 68) },
+                    { key: 'D', svg: svgBox(grid2x2(['tl', 'br']), 68) },
+                    { key: 'E', svg: svgBox(grid2x2(['tr', 'bl']), 68) }
+                ],
+                answer: 'C',
+                explanation: 'Pasangan pertama menunjukkan rotasi 180° pada kisi 2×2. Dua sel hitam di kolom kiri setelah diputar 180° berpindah ke kolom kanan (Pilihan C).'
+            },
+            {
+                id: 29, domain: 'Figural', sub: 'Analogi Figural',
+                text: 'Pada pasangan pertama terdapat perubahan jumlah sisi dan jumlah unsur titik. Terapkan hubungan yang sama.',
+                stimulusSvg: `<div class="flex items-center gap-2 flex-wrap justify-center">${svgBox(regularPoly(3) + dotsInside(1))}${svgArrow('→')}${svgBox(regularPoly(4) + dotsInside(2))}${svgArrow(':')}${svgBox(regularPoly(5) + dotsInside(3))}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>')}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(regularPoly(5) + dotsInside(4), 68) },
+                    { key: 'B', svg: svgBox(regularPoly(6) + dotsInside(3), 68) },
+                    { key: 'C', svg: svgBox(regularPoly(6) + dotsInside(4), 68) },
+                    { key: 'D', svg: svgBox(regularPoly(7) + dotsInside(4), 68) },
+                    { key: 'E', svg: svgBox(regularPoly(4) + dotsInside(4), 68) }
+                ],
+                answer: 'C',
+                explanation: 'Jumlah sisi bertambah 1 dan jumlah titik bertambah 1. Segi lima dengan 3 titik berubah menjadi segi enam dengan 4 titik (Pilihan C).'
+            },
+
+            // --- FIGURAL: KETIDAKSAMAAN (30-32) ---
+            {
+                id: 30, domain: 'Figural', sub: 'Ketidaksamaan Figural',
+                text: 'Empat gambar mengikuti aturan bentuk yang sama. Pilih satu gambar yang berbeda.',
+                options: [
+                    { key: 'A', svg: svgBox(grid3x3([0, 3, 4]), 68) },
+                    { key: 'B', svg: svgBox(grid3x3([1, 2, 4]), 68) },
+                    { key: 'C', svg: svgBox(grid3x3([4, 5, 8]), 68) },
+                    { key: 'D', svg: svgBox(grid3x3([4, 6, 7]), 68) },
+                    { key: 'E', svg: svgBox(grid3x3([0, 4, 8]), 68) }
+                ],
+                answer: 'E',
+                explanation: 'Pada A–D, tiga sel hitam terhubung melalui sisi membentuk pola L hasil rotasi. Pada E, sel hitam tersusun diagonal hanya bersentuhan sudut.'
+            },
+            {
+                id: 31, domain: 'Figural', sub: 'Ketidaksamaan Figural',
+                text: 'Empat gambar mengikuti hubungan yang sama antara jumlah sisi bangun dan jumlah titik. Pilih satu gambar yang berbeda.',
+                options: [
+                    { key: 'A', svg: svgBox(regularPoly(3) + dotsInside(1), 68) },
+                    { key: 'B', svg: svgBox(regularPoly(4) + dotsInside(2), 68) },
+                    { key: 'C', svg: svgBox(regularPoly(5) + dotsInside(3), 68) },
+                    { key: 'D', svg: svgBox(regularPoly(6) + dotsInside(4), 68) },
+                    { key: 'E', svg: svgBox(regularPoly(5) + dotsInside(4), 68) }
+                ],
+                answer: 'E',
+                explanation: 'Pada A–D, jumlah titik = jumlah sisi dikurangi 2 (3→1, 4→2, 5→3, 6→4). Pilihan E berupa segi lima dengan 4 titik sehingga melanggar aturan.'
+            },
+            {
+                id: 32, domain: 'Figural', sub: 'Ketidaksamaan Figural',
+                text: 'Empat gambar memiliki hubungan posisi yang sama antara arah panah dan titik. Pilih satu gambar yang berbeda.',
+                options: [
+                    { key: 'A', svg: svgBox(arrowWithDot('up', 'bottom'), 68) },
+                    { key: 'B', svg: svgBox(arrowWithDot('right', 'left'), 68) },
+                    { key: 'C', svg: svgBox(arrowWithDot('down', 'top'), 68) },
+                    { key: 'D', svg: svgBox(arrowWithDot('left', 'right'), 68) },
+                    { key: 'E', svg: svgBox(arrowWithDot('up', 'right'), 68) }
+                ],
+                answer: 'E',
+                explanation: 'Pada A–D, titik selalu berada di sisi belakang (berlawanan dengan kepala panah). Pada E, panah ke atas tetapi titik di kanan.'
+            },
+
+            // --- FIGURAL: SERIAL (33-35) ---
+            {
+                id: 33, domain: 'Figural', sub: 'Serial Figural',
+                text: 'Pilih gambar yang tepat untuk melanjutkan serial berikut.',
+                stimulusSvg: `<div class="flex items-center gap-1.5 flex-wrap justify-center">${svgBox(dotAndBar('tl', 'v'), 66)}${svgArrow('→')}${svgBox(dotAndBar('tr', 'h'), 66)}${svgArrow('→')}${svgBox(dotAndBar('br', 'v'), 66)}${svgArrow('→')}${svgBox(dotAndBar('bl', 'h'), 66)}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>', 66)}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(dotAndBar('tl', 'v'), 68) },
+                    { key: 'B', svg: svgBox(dotAndBar('tl', 'h'), 68) },
+                    { key: 'C', svg: svgBox(dotAndBar('tr', 'v'), 68) },
+                    { key: 'D', svg: svgBox(dotAndBar('br', 'v'), 68) },
+                    { key: 'E', svg: svgBox(dotAndBar('bl', 'v'), 68) }
+                ],
+                answer: 'A',
+                explanation: 'Titik bergerak searah jarum jam (kiri atas → kanan atas → kanan bawah → kiri bawah → kembali kiri atas), dan garis berputar 90° bergantian vertikal–horizontal (Pilihan A).'
+            },
+            {
+                id: 34, domain: 'Figural', sub: 'Serial Figural',
+                text: 'Pilih gambar yang tepat untuk melanjutkan serial bangun dan pola pengisian berikut.',
+                stimulusSvg: `<div class="flex items-center gap-1.5 flex-wrap justify-center">${svgBox(regularPoly(3, 50, 50, 34, 'none'), 66)}${svgArrow('→')}${svgBox(regularPoly(4, 50, 50, 34, '#0f172a'), 66)}${svgArrow('→')}${svgBox(regularPoly(5, 50, 50, 34, 'none'), 66)}${svgArrow('→')}${svgBox(regularPoly(6, 50, 50, 34, '#0f172a'), 66)}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>', 66)}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(regularPoly(7, 50, 50, 34, 'none'), 68) },
+                    { key: 'B', svg: svgBox(regularPoly(7, 50, 50, 34, '#0f172a'), 68) },
+                    { key: 'C', svg: svgBox(regularPoly(8, 50, 50, 34, 'none'), 68) },
+                    { key: 'D', svg: svgBox(regularPoly(5, 50, 50, 34, 'none'), 68) },
+                    { key: 'E', svg: svgBox(regularPoly(6, 50, 50, 34, 'none'), 68) }
+                ],
+                answer: 'A',
+                explanation: 'Jumlah sisi bertambah 1 (3, 4, 5, 6 → 7 sisi) dan warna berganti kosong–hitam–kosong–hitam → kosong. Maka jawabannya segi tujuh kosong (Pilihan A).'
+            },
+            {
+                id: 35, domain: 'Figural', sub: 'Serial Figural',
+                text: 'Pilih gambar yang tepat untuk melanjutkan serial rotasi garis dan perpindahan titik berikut.',
+                stimulusSvg: `<div class="flex items-center gap-1.5 flex-wrap justify-center">${svgBox(diagLineAndDot(0, 'left'), 66)}${svgArrow('→')}${svgBox(diagLineAndDot(45, 'right'), 66)}${svgArrow('→')}${svgBox(diagLineAndDot(90, 'left'), 66)}${svgArrow('→')}${svgBox(diagLineAndDot(135, 'right'), 66)}${svgArrow('→')}${svgBox('<text x="50" y="62" text-anchor="middle" font-size="36" font-weight="bold" fill="#0f172a">?</text>', 66)}</div>`,
+                options: [
+                    { key: 'A', svg: svgBox(diagLineAndDot(180, 'left'), 68) },
+                    { key: 'B', svg: svgBox(diagLineAndDot(180, 'right'), 68) },
+                    { key: 'C', svg: svgBox(diagLineAndDot(45, 'left'), 68) },
+                    { key: 'D', svg: svgBox(diagLineAndDot(90, 'right'), 68) },
+                    { key: 'E', svg: svgBox(diagLineAndDot(135, 'left'), 68) }
+                ],
+                answer: 'A',
+                explanation: 'Garis berputar 45° searah jarum jam setiap langkah (0°→45°→90°→135°→180°/vertikal) dan titik berganti kiri–kanan → kembali ke kiri (Pilihan A).'
+            }
+        ];
+
+        /* =====================================================================
+           3. APPLICATION STATE (IN-MEMORY FASE 1)
+           ===================================================================== */
+        const state = {
+            loginPortal: 'peserta',
+            currentUser: null,
+            questions: TIU_QUESTIONS,
+            activeAdminMenu: 'dashboard',
+            proctorGridCols: 3,
+
+            // Token & Exam Settings
+            settings: {
+                orgName: 'Panitia Seleksi CPNS 2026',
+                durationMinutes: 45,
+                maxViolations: 3,
+                examToken: 'TIU2026A',
+                tokenActive: false
+            },
+
+            // Participant Session State
+            currentQuestionIdx: 0,
+            answers: {},
+            doubts: {},
+            examActive: false,
+            examFinished: false,
+            examLocked: false,
+            remainingSeconds: 45 * 60,
+            timerInterval: null,
+            violations: 0,
+            cameraStream: null,
+            cameraReady: false,
+            cameraException: false,
+            saveVersion: 0,
+            lastResult: null,
+
+            // Demo Participants Database (Automatically updated on participant login)
+            participants: [
+                { id: '2026-TIU-001', name: 'Andi Pratama', room: 'Lab-A', status: 'Belum Dimulai', progress: 0, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '45:00', answers: {} },
+                { id: '2026-TIU-002', name: 'Siti Rahmawati', room: 'Lab-A', status: 'Sedang Berlangsung', progress: 18, camera: 'Online', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '26:15', answers: {} },
+                { id: '2026-TIU-003', name: 'Budi Santoso', room: 'Lab-A', status: 'Sedang Berlangsung', progress: 12, camera: 'Online', net: 'Online', violations: 1, locked: false, score: null, timeLeft: '31:40', answers: {} },
+                { id: '2026-TIU-004', name: 'Dewi Lestari', room: 'Lab-B', status: 'Terkunci', progress: 9, camera: 'Offline', net: 'Online', violations: 3, locked: true, score: null, timeLeft: '29:05', answers: {} },
+                { id: '2026-TIU-005', name: 'Rizky Ramadhan', room: 'Lab-B', status: 'Selesai', progress: 35, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: 145, timeLeft: '00:00', answers: {} },
+                { id: '2026-TIU-006', name: 'Nadia Kusuma', room: 'Lab-B', status: 'Sedang Berlangsung', progress: 24, camera: 'Online', net: 'Online', violations: 0, locked: false, score: null, timeLeft: '19:50', answers: {} }
+            ],
+
+            // Staff Accounts (RBAC)
+            staffAccounts: [
+                { username: 'superadmin', pass: 'ADMIN2026', name: 'Dr. H. Ahmad Fauzi', role: 'Super Admin', room: 'Semua Ruang' },
+                { username: 'admin', pass: 'ADMIN2026', name: 'Rina Oktaviani, S.Kom.', role: 'Admin Ujian', room: 'Semua Ruang' },
+                { username: 'pengawas', pass: 'PROCTOR2026', name: 'Hendra Wijaya, M.Pd.', role: 'Pengawas', room: 'Lab-A & Lab-B' }
+            ],
+
+            auditLogs: [
+                { time: '08:00:02', actor: 'SYSTEM', role: 'System', event: 'Inisialisasi SMART CBT (35 Soal Tes Diagnostik TIU Bagian 1.5 dimuat)', level: 'info' },
+                { time: '08:05:14', actor: '2026-TIU-005', role: 'Peserta', event: 'Rizky Ramadhan menyelesaikan ujian — Skor 145/175', level: 'info' },
+                { time: '08:12:30', actor: '2026-TIU-004', role: 'Peserta', event: 'Sesi Dewi Lestari terkunci otomatis (3× pelanggaran perpindahan tab)', level: 'danger' }
+            ]
+        };
+
+        /* =====================================================================
+           4. UTILITIES, TOAST, MODAL, THEME, AUDIT LOG
+           ===================================================================== */
+        function esc(str) {
+            return String(str ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+
+        function nowTime() {
+            return new Date().toLocaleTimeString('id-ID', { hour12: false });
+        }
+
+        function addAuditLog(actor, role, event, level = 'info') {
+            state.auditLogs.unshift({ time: nowTime(), actor, role, event, level });
+            if (state.auditLogs.length > 120) state.auditLogs.pop();
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-400/40',
+                error: 'bg-rose-600 text-white border-rose-400/40',
+                warning: 'bg-amber-500 text-slate-950 border-amber-300/40',
+                info: 'bg-navy-800 text-white border-cyan-500/40'
+            };
+            const el = document.createElement('div');
+            el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs font-semibold flex items-center justify-between gap-3 fade-in ${styles[type] || styles.info}`;
+            el.innerHTML = `<span>${esc(msg)}</span><button onclick="this.parentElement.remove()" class="opacity-75 hover:opacity-100">✕</button>`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3800);
+        }
+
+        function openModal({ title, bodyHtml, footerHtml, icon = 'info', iconClass = 'bg-emerald-500/15 text-emerald-500', wide = false }) {
+            const dialogBox = document.getElementById('modal-dialog-box');
+            if (dialogBox) {
+                dialogBox.classList.remove('max-w-lg', 'max-w-4xl');
+                dialogBox.classList.add(wide ? 'max-w-4xl' : 'max-w-lg');
+            }
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            document.getElementById('modal-footer').innerHTML = footerHtml || `<button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Tutup</button>`;
+            const iconWrap = document.getElementById('modal-icon-wrap');
+            iconWrap.className = `w-8 h-8 rounded-xl flex items-center justify-center ${iconClass}`;
+            iconWrap.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+
+            const modal = document.getElementById('app-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('app-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function copyTextFallback(text, successMsg = 'Berhasil disalin!') {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (e) {
+                showToast('Gagal menyalin otomatis, silakan salin manual.', 'warning');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function showView(viewId) {
+            ['login', 'participant', 'prep', 'exam', 'result', 'admin'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (!el) return;
+                if (v === viewId) {
+                    el.classList.remove('hidden');
+                    if (v !== 'admin') el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        /* =====================================================================
+           5. AUTHENTICATION & AUTO-REGISTER PARTICIPANT
+           ===================================================================== */
+        function setLoginPortal(portal) {
+            state.loginPortal = portal;
+            const btnP = document.getElementById('btn-portal-peserta');
+            const btnA = document.getElementById('btn-portal-admin');
+            const heading = document.getElementById('login-heading');
+            const sub = document.getElementById('login-subheading');
+            const uLabel = document.getElementById('login-user-label');
+            const uInput = document.getElementById('login-username');
+            const pInput = document.getElementById('login-password');
+            const qP = document.getElementById('quick-login-peserta');
+            const qA = document.getElementById('quick-login-admin');
+
+            uInput.value = '';
+            pInput.value = '';
+
+            if (portal === 'peserta') {
+                btnP.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow';
+                btnA.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-navy-800';
+                heading.textContent = 'Masuk Portal Peserta Ujian';
+                sub.innerHTML = 'Cukup masukkan <strong>Nama Lengkap</strong> Anda dan password <code class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">CPNS2026</code>. Data Anda otomatis tersimpan di data Admin & Super Admin.';
+                uLabel.textContent = 'Nama Lengkap Peserta';
+                uInput.placeholder = 'Contoh: Abdul Rahman Utina';
+                pInput.placeholder = 'Masukkan password: CPNS2026';
+                qP.classList.remove('hidden');
+                qP.classList.add('flex');
+                qA.classList.add('hidden');
+                qA.classList.remove('flex');
+            } else {
+                btnA.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-slate-950 shadow';
+                btnP.className = 'py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-navy-800';
+                heading.textContent = 'Masuk Portal Admin & Pengawas';
+                sub.innerHTML = 'Akses manajemen peserta, kontrol token ujian, live camera monitoring, dan riwayat jawaban peserta.';
+                uLabel.textContent = 'Username Petugas';
+                uInput.placeholder = 'superadmin / admin / pengawas';
+                pInput.placeholder = 'Masukkan password petugas';
+                qA.classList.remove('hidden');
+                qA.classList.add('flex');
+                qP.classList.add('hidden');
+                qP.classList.remove('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function fillDemoLogin(portal, user, pass) {
+            setLoginPortal(portal);
+            document.getElementById('login-username').value = user;
+            document.getElementById('login-password').value = pass;
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('login-password');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (!user || !pass) {
+                showToast('Nama/Username dan password wajib diisi.', 'warning');
+                return;
+            }
+
+            if (state.loginPortal === 'peserta') {
+                if (pass !== 'CPNS2026') {
+                    showToast('Password peserta salah! Gunakan password: CPNS2026', 'error');
+                    return;
+                }
+
+                // Cari peserta berdasarkan nama lengkap (case-insensitive) atau nomor peserta
+                let found = state.participants.find(p =>
+                    p.name.toLowerCase() === user.toLowerCase() || p.id.toLowerCase() === user.toLowerCase()
+                );
+
+                // Jika belum ada, otomatis buat dan simpan ke data Admin & Super Admin
+                if (!found) {
+                    const nextNum = String(state.participants.length + 1).padStart(3, '0');
+                    found = {
+                        id: `2026-TIU-${nextNum}`,
+                        name: user,
+                        room: 'Lab-A',
+                        status: 'Belum Dimulai',
+                        progress: 0,
+                        camera: 'Offline',
+                        net: 'Online',
+                        violations: 0,
+                        locked: false,
+                        score: null,
+                        timeLeft: `${state.settings.durationMinutes}:00`,
+                        answers: {}
+                    };
+                    state.participants.unshift(found);
+                    addAuditLog(found.id, 'SYSTEM', `Peserta baru "${found.name}" (${found.id}) otomatis tersimpan ke data Admin & Super Admin`, 'info');
+                }
+
+                // Reset state sesi lokal jika peserta berbeda yang login
+                if (!state.currentUser || state.currentUser.id !== found.id) {
+                    state.examActive = false;
+                    state.examFinished = found.status === 'Selesai';
+                    state.examLocked = !!found.locked;
+                    state.answers = found.answers ? { ...found.answers } : {};
+                    state.doubts = {};
+                    state.violations = found.violations || 0;
+                    state.lastResult = null;
+                }
+
+                state.currentUser = { ...found, role: 'Peserta' };
+                addAuditLog(found.id, 'Peserta', `Login Portal Peserta berhasil (${found.name})`, 'info');
+                renderParticipantDashboard();
+                showView('participant');
+                showToast(`Selamat datang, ${found.name}!`, 'success');
+            } else {
+                const staff = state.staffAccounts.find(s => s.username.toLowerCase() === user.toLowerCase() && s.pass === pass);
+                if (!staff) {
+                    showToast('Username atau password petugas tidak valid.', 'error');
+                    return;
+                }
+                state.currentUser = { ...staff };
+                addAuditLog(staff.name, staff.role, 'Login Portal Admin/Pengawas berhasil', 'info');
+                renderAdminShell();
+                showView('admin');
+                showToast(`Login berhasil sebagai ${staff.role}.`, 'success');
+            }
+        }
+
+        function logout() {
+            stopExamTimer();
+            stopCameraStream();
+            if (state.currentUser) {
+                addAuditLog(state.currentUser.name || state.currentUser.id, state.currentUser.role, 'Logout dari sistem', 'info');
+            }
+            state.examActive = false;
+            state.currentUser = null;
+            showView('login');
+            setLoginPortal('peserta');
+            showToast('Anda telah keluar dengan aman.', 'info');
+        }
+
+        /* =====================================================================
+           6. PARTICIPANT DASHBOARD & TOKEN VERIFICATION GATE
+           ===================================================================== */
+        function renderParticipantDashboard() {
+            const p = state.participants.find(x => x.id === state.currentUser.id) || state.currentUser;
+            document.getElementById('p-top-name').textContent = p.name;
+            document.getElementById('p-top-id').textContent = p.id;
+            document.getElementById('p-welcome-name').textContent = p.name;
+            document.getElementById('p-welcome-id').textContent = p.id;
+            document.getElementById('p-welcome-room').textContent = p.room;
+            document.getElementById('p-avatar').textContent = p.name.trim().charAt(0).toUpperCase();
+            document.getElementById('p-status-badge').textContent = p.status;
+
+            renderParticipantTokenBox(p);
+            lucide.createIcons();
+        }
+
+        function renderParticipantTokenBox(p) {
+            const box = document.getElementById('participant-token-section');
+            if (p.status === 'Selesai') {
+                box.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Ujian Telah Diselesaikan
+                            </span>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">Skor TIU Anda: <strong class="text-emerald-600 dark:text-emerald-400 text-base">${p.score ?? 0} / 175</strong></p>
+                        </div>
+                        <button onclick="openParticipantOwnResult()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                            <i data-lucide="award" class="w-4 h-4"></i> Lihat Hasil & Pembahasan
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            if (p.locked) {
+                box.innerHTML = `
+                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-1">
+                        <div class="font-bold flex items-center gap-1.5"><i data-lucide="lock" class="w-4 h-4"></i> Sesi Ujian Anda Sedang Terkunci</div>
+                        <p>Hubungi Admin atau Pengawas Ruang untuk membuka kunci sesi Anda.</p>
+                    </div>`;
+                return;
+            }
+
+            if (!state.settings.tokenActive) {
+                box.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+                            <i data-lucide="hourglass" class="w-5 h-5"></i>
+                        </div>
+                        <div class="space-y-1.5 flex-1">
+                            <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Menunggu Aktivasi Token Ujian</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Token ujian belum diaktifkan oleh <strong>Admin / Super Admin / Pengawas</strong>. Setelah waktu ujian dimulai dan token diaktifkan oleh panitia, token akan otomatis muncul di sini.
+                            </p>
+                            <div class="pt-2">
+                                <button disabled class="px-5 py-2.5 rounded-xl bg-slate-300 dark:bg-navy-800 text-slate-500 text-xs font-bold cursor-not-allowed inline-flex items-center gap-2">
+                                    <i data-lucide="lock" class="w-4 h-4"></i> Mulai Ujian (Terkunci)
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400 block">Token Ujian Aktif (Dari Pengawas)</span>
+                                <span class="font-mono font-extrabold text-xl tracking-widest text-slate-900 dark:text-white">${esc(state.settings.examToken)}</span>
+                            </div>
+                            <button type="button" onclick="copyAndFillParticipantToken()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow transition">
+                                <i data-lucide="copy" class="w-4 h-4"></i> Salin Token
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <input id="participant-token-input" type="text" placeholder="Tempel atau ketik token ujian di sini..."
+                                class="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-navy-900 border border-slate-300 dark:border-slate-700 font-mono font-bold uppercase tracking-wider text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button type="button" onclick="verifyTokenAndProceed()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-heading font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition">
+                                <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Mulai Ujian
+                            </button>
+                        </div>
+                    </div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function copyAndFillParticipantToken() {
+            const token = state.settings.examToken;
+            const input = document.getElementById('participant-token-input');
+            if (input) input.value = token;
+            copyTextFallback(token, `Token "${token}" berhasil disalin & diisikan!`);
+        }
+
+        function verifyTokenAndProceed() {
+            if (!state.settings.tokenActive) {
+                showToast('Token belum diaktifkan oleh panitia.', 'warning');
+                return;
+            }
+            const val = (document.getElementById('participant-token-input')?.value || '').trim().toUpperCase();
+            if (!val) {
+                showToast('Silakan salin atau masukkan token ujian terlebih dahulu.', 'warning');
+                return;
+            }
+            if (val !== state.settings.examToken.toUpperCase()) {
+                showToast('Token tidak cocok! Periksa kembali token yang aktif.', 'error');
+                return;
+            }
+            addAuditLog(state.currentUser.id, 'Peserta', `Verifikasi token ujian (${val}) berhasil`, 'info');
+            openPrepScreen();
+        }
+
+        /* =====================================================================
+           7. PRE-EXAM CHECKLIST & CAMERA PROCTORING PERMISSION
+           ===================================================================== */
+        function openPrepScreen() {
+            state.cameraReady = false;
+            state.cameraException = false;
+            document.getElementById('prep-agree-checkbox').checked = false;
+            renderPrepChecklist();
+            updatePrepProceedButton();
+            showView('prep');
+        }
+
+        function renderPrepChecklist() {
+            const checks = [
+                { label: '1. Dukungan Browser HTML5', ok: true },
+                { label: '2. Koneksi Internet', ok: navigator.onLine },
+                { label: '3. Ketersediaan Kamera', ok: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) },
+                { label: '4. Izin Kamera / Pengecualian', ok: state.cameraReady || state.cameraException },
+                { label: '5. Kualitas Video Preview', ok: state.cameraReady || state.cameraException },
+                { label: '6. Status Sesi Peserta Aktif', ok: true },
+                { label: '7. Token & Paket TIU Valid', ok: state.settings.tokenActive },
+                { label: '8. Dukungan Mode Fullscreen', ok: !!document.documentElement.requestFullscreen },
+                { label: '9. Persetujuan Tata Tertib', ok: document.getElementById('prep-agree-checkbox')?.checked },
+                { label: '10. Informasi Privasi Pengawasan', ok: true }
+            ];
+            document.getElementById('prep-checklist').innerHTML = checks.map(c => `
+                <div class="p-2.5 rounded-xl border ${c.ok ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-navy-950 border-slate-200 dark:border-slate-800 text-slate-500'} flex items-center gap-2 font-medium">
+                    <i data-lucide="${c.ok ? 'check-circle-2' : 'circle'}" class="w-4 h-4 shrink-0 ${c.ok ? 'text-emerald-500' : 'text-slate-400'}"></i>
+                    <span>${c.label}</span>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function requestParticipantCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                state.cameraStream = stream;
+                state.cameraReady = true;
+                state.cameraException = false;
+                const video = document.getElementById('prep-camera-video');
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                document.getElementById('prep-camera-placeholder').classList.add('hidden');
+                document.getElementById('prep-camera-badge').classList.remove('hidden');
+                showToast('Kamera aktif dan siap untuk pengawasan!', 'success');
+            } catch (err) {
+                showToast('Izin kamera ditolak atau tidak tersedia. Gunakan opsi "Tanpa Kamera (Izin Admin)" jika perangkat tidak memiliki kamera.', 'warning');
+            }
+            renderPrepChecklist();
+            updatePrepProceedButton();
+        }
+
+        function grantCameraException() {
+            state.cameraException = true;
+            addAuditLog(state.currentUser.id, 'Peserta', 'Menggunakan pengecualian tanpa kamera (izin admin)', 'warning');
+            showToast('Pengecualian perangkat tanpa kamera diaktifkan.', 'info');
+            renderPrepChecklist();
+            updatePrepProceedButton();
+        }
+
+        function updatePrepProceedButton() {
+            renderPrepChecklist();
+            const agreed = document.getElementById('prep-agree-checkbox').checked;
+            const btn = document.getElementById('btn-start-exam-now');
+            btn.disabled = !(agreed && (state.cameraReady || state.cameraException));
+        }
+
+        function stopCameraStream() {
+            if (state.cameraStream) {
+                state.cameraStream.getTracks().forEach(t => t.stop());
+                state.cameraStream = null;
+            }
+        }
+
+        /* =====================================================================
+           8. EXAM ENGINE, TIMER, AUTOSAVE & EXAM SECURITY
+           ===================================================================== */
+        function beginExamSession() {
+            state.examActive = true;
+            state.examFinished = false;
+            state.examLocked = false;
+            state.currentQuestionIdx = 0;
+            state.remainingSeconds = state.settings.durationMinutes * 60;
+
+            const p = state.participants.find(x => x.id === state.currentUser.id);
+            if (p) {
+                p.status = 'Sedang Berlangsung';
+                p.camera = state.cameraReady ? 'Online' : 'Offline';
+            }
+
+            document.getElementById('exam-p-name').textContent = state.currentUser.name;
+            document.getElementById('exam-p-id').textContent = state.currentUser.id;
+            document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
+            document.getElementById('exam-locked-overlay').classList.add('hidden');
+            document.getElementById('exam-locked-overlay').classList.remove('flex');
+
+            // Attach camera mini preview if active
+            const miniVid = document.getElementById('exam-camera-mini');
+            const camIcon = document.getElementById('exam-camera-icon');
+            const camDot = document.getElementById('exam-cam-dot');
+            const camStatus = document.getElementById('exam-cam-status');
+            if (state.cameraStream) {
+                miniVid.srcObject = state.cameraStream;
+                miniVid.classList.remove('hidden');
+                camIcon.classList.add('hidden');
+                camDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                camStatus.textContent = 'Kamera Online';
+            } else {
+                miniVid.classList.add('hidden');
+                camIcon.classList.remove('hidden');
+                camDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                camStatus.textContent = 'Pengecualian Admin';
+            }
+
+            addAuditLog(state.currentUser.id, 'Peserta', 'Memulai sesi ujian TIU (35 Soal / 45 Menit)', 'info');
+            showView('exam');
+            renderCurrentQuestion();
+            renderNavGrid();
+            startExamTimer();
+        }
+
+        function startExamTimer() {
+            stopExamTimer();
+            updateTimerDisplay();
+            state.timerInterval = setInterval(() => {
+                if (!state.examActive || state.examLocked) return;
+                state.remainingSeconds--;
+                updateTimerDisplay();
+                if (state.remainingSeconds <= 0) {
+                    finalizeExam(true);
+                }
+            }, 1000);
+        }
+
+        function stopExamTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const m = String(Math.floor(Math.max(0, state.remainingSeconds) / 60)).padStart(2, '0');
+            const s = String(Math.max(0, state.remainingSeconds) % 60).padStart(2, '0');
+            const txt = `${m}:${s}`;
+            const el = document.getElementById('exam-timer-display');
+            if (el) el.textContent = txt;
+            const p = state.participants.find(x => x.id === state.currentUser?.id);
+            if (p) p.timeLeft = txt;
+        }
+
+        function renderCurrentQuestion() {
+            const q = state.questions[state.currentQuestionIdx];
+            const selected = state.answers[q.id];
+            const isDoubt = !!state.doubts[q.id];
+            const isFigural = q.domain === 'Figural';
+
+            const doubtBtn = document.getElementById('btn-doubt-toggle');
+            if (doubtBtn) {
+                doubtBtn.className = isDoubt
+                    ? 'px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition'
+                    : 'px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition';
+            }
+
+            const optionsHtml = isFigural
+                ? `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 pt-2">
+                    ${q.options.map(opt => {
+                        const active = selected === opt.key;
+                        return `<button type="button" onclick="selectAnswer(${q.id}, '${opt.key}')" class="p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition ${active ? 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700 hover:border-cyan-500 bg-slate-50 dark:bg-navy-950'}">
+                            <span class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${active ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-navy-800 text-slate-700 dark:text-slate-300'}">${opt.key}</span>
+                            ${opt.svg}
+                        </button>`;
+                    }).join('')}
+                   </div>`
+                : `<div class="space-y-2.5 pt-2">
+                    ${q.options.map(opt => {
+                        const active = selected === opt.key;
+                        return `<button type="button" onclick="selectAnswer(${q.id}, '${opt.key}')" class="w-full text-left p-3.5 rounded-2xl border-2 flex items-center gap-3 transition ${active ? 'border-emerald-500 bg-emerald-500/10 text-slate-900 dark:text-white' : 'border-slate-200 dark:border-slate-800 hover:border-cyan-500/60 bg-slate-50/70 dark:bg-navy-950/60 text-slate-700 dark:text-slate-200'}">
+                            <span class="w-8 h-8 rounded-xl text-xs font-bold flex items-center justify-center shrink-0 ${active ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-navy-800 text-slate-700 dark:text-slate-300'}">${opt.key}</span>
+                            <span class="text-sm font-medium">${esc(opt.label)}</span>
+                        </button>`;
+                    }).join('')}
+                   </div>`;
+
+            document.getElementById('question-card').innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-xl bg-navy-900 dark:bg-emerald-500/20 text-white dark:text-emerald-300 font-heading font-bold text-xs">Soal No. ${q.id} / 35</span>
+                        <span class="px-2.5 py-1 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">${q.domain} • ${q.sub}</span>
+                    </div>
+                    <span class="text-xs font-semibold ${selected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">
+                        ${selected ? `Terjawab: ${selected}` : 'Belum Dijawab'}
+                    </span>
+                </div>
+
+                <div class="text-base md:text-lg font-medium text-slate-900 dark:text-white leading-relaxed">
+                    ${esc(q.text)}
+                </div>
+
+                ${q.stimulusSvg ? `<div class="p-4 rounded-2xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 overflow-x-auto">${q.stimulusSvg}</div>` : ''}
+
+                ${optionsHtml}
+            `;
+            lucide.createIcons();
+        }
+
+        function selectAnswer(qId, key) {
+            state.answers[qId] = key;
+            const p = state.participants.find(x => x.id === state.currentUser?.id);
+            if (p) {
+                if (!p.answers) p.answers = {};
+                p.answers[qId] = key;
+                p.progress = Object.keys(p.answers).length;
+            }
+            triggerAutosave();
+            renderCurrentQuestion();
+            renderNavGrid();
+        }
+
+        function triggerAutosave() {
+            state.saveVersion++;
+            const badge = document.getElementById('exam-save-badge');
+            if (!badge) return;
+            badge.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-amber-500"></i> Menyimpan...`;
+            lucide.createIcons();
+            setTimeout(() => {
+                badge.innerHTML = `<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-500"></i> Tersimpan (v${state.saveVersion})`;
+                lucide.createIcons();
+            }, 320);
+        }
+
+        function toggleDoubtCurrent() {
+            const q = state.questions[state.currentQuestionIdx];
+            state.doubts[q.id] = !state.doubts[q.id];
+            renderCurrentQuestion();
+            renderNavGrid();
+        }
+
+        function goToQuestion(idx) {
+            state.currentQuestionIdx = idx;
+            renderCurrentQuestion();
+            renderNavGrid();
+            const drawer = document.getElementById('mobile-nav-drawer');
+            if (drawer && !drawer.classList.contains('hidden')) toggleMobileNavDrawer();
+        }
+
+        function prevQuestion() {
+            if (state.currentQuestionIdx > 0) goToQuestion(state.currentQuestionIdx - 1);
+        }
+
+        function nextQuestion() {
+            if (state.currentQuestionIdx < state.questions.length - 1) goToQuestion(state.currentQuestionIdx + 1);
+        }
+
+        function toggleMobileNavDrawer() {
+            const d = document.getElementById('mobile-nav-drawer');
+            d.classList.toggle('hidden');
+            d.classList.toggle('flex');
+        }
+
+        function renderNavGrid() {
+            const total = state.questions.length;
+            const answered = Object.keys(state.answers).length;
+            const doubtCount = Object.values(state.doubts).filter(Boolean).length;
+            const pct = Math.round((answered / total) * 100);
+
+            document.getElementById('stat-answered').textContent = answered;
+            document.getElementById('stat-doubt').textContent = doubtCount;
+            document.getElementById('stat-blank').textContent = total - answered;
+            document.getElementById('nav-progress-pct').textContent = `${pct}%`;
+            document.getElementById('nav-progress-bar').style.width = `${pct}%`;
+
+            const buttonsHtml = state.questions.map((q, idx) => {
+                const isCurrent = idx === state.currentQuestionIdx;
+                const isDoubt = !!state.doubts[q.id];
+                const isAns = !!state.answers[q.id];
+                let cls = 'bg-slate-200 dark:bg-navy-800 text-slate-700 dark:text-slate-300';
+                if (isCurrent) cls = 'bg-blue-600 text-white ring-2 ring-blue-400';
+                else if (isDoubt) cls = 'bg-amber-400 text-slate-950';
+                else if (isAns) cls = 'bg-emerald-500 text-white';
+                return `<button onclick="goToQuestion(${idx})" class="h-9 rounded-xl font-bold text-xs transition hover:scale-105 ${cls}">${q.id}</button>`;
+            }).join('');
+
+            document.getElementById('nav-grid').innerHTML = buttonsHtml;
+            document.getElementById('mobile-nav-grid').innerHTML = buttonsHtml;
+        }
+
+        // Exam Security: Page Visibility Detection
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && state.examActive && !state.examFinished && !state.examLocked) {
+                state.violations++;
+                const p = state.participants.find(x => x.id === state.currentUser?.id);
+                if (p) p.violations = state.violations;
+                document.getElementById('exam-viol-badge').textContent = `Pelanggaran: ${state.violations}/${state.settings.maxViolations}`;
+                addAuditLog(state.currentUser.id, 'Peserta', `Terdeteksi perpindahan tab (Pelanggaran ke-${state.violations})`, 'danger');
+
+                if (state.violations >= state.settings.maxViolations) {
+                    state.examLocked = true;
+                    if (p) { p.locked = true; p.status = 'Terkunci'; }
+                    document.getElementById('exam-locked-overlay').classList.remove('hidden');
+                    document.getElementById('exam-locked-overlay').classList.add('flex');
+                    addAuditLog(state.currentUser.id, 'SYSTEM', 'Sesi ujian dikunci otomatis akibat batas pelanggaran tercapai', 'danger');
+                } else {
+                    showToast(`PERINGATAN (${state.violations}/${state.settings.maxViolations}): Dilarang meninggalkan halaman ujian!`, 'warning');
+                }
+            }
+        });
+
+        function confirmFinishExam() {
+            const answered = Object.keys(state.answers).length;
+            const blank = state.questions.length - answered;
+            openModal({
+                title: 'Konfirmasi Pengumpulan Ujian',
+                icon: 'check-circle-2',
+                iconClass: 'bg-emerald-500/15 text-emerald-500',
+                bodyHtml: `
+                    <div class="space-y-3 text-xs">
+                        <p>Pastikan Anda telah memeriksa kembali jawaban sebelum mengakhiri sesi ujian.</p>
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                                <span class="text-slate-500 block">Sudah Dijawab</span>
+                                <strong class="text-lg text-emerald-600 dark:text-emerald-400">${answered} Soal</strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-500 block">Belum Dijawab</span>
+                                <strong class="text-lg text-slate-700 dark:text-slate-200">${blank} Soal</strong>
+                            </div>
+                        </div>
+                    </div>`,
+                footerHtml: `
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Lanjutkan Mengerjakan</button>
+                    <button onclick="closeModal(); finalizeExam(false);" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">Ya, Kumpulkan Sekarang</button>
+                `
+            });
+        }
+
+        function finalizeExam(isTimeout = false) {
+            stopExamTimer();
+            stopCameraStream();
+            state.examActive = false;
+            state.examFinished = true;
+
+            let correct = 0;
+            const byDomain = { Verbal: { c: 0, t: 12 }, Numerik: { c: 0, t: 14 }, Figural: { c: 0, t: 9 } };
+            state.questions.forEach(q => {
+                if (state.answers[q.id] === q.answer) {
+                    correct++;
+                    byDomain[q.domain].c++;
+                }
+            });
+
+            const score = correct * 5;
+            const pct = ((correct / 35) * 100).toFixed(1);
+            const submittedAt = nowTime();
+
+            const p = state.participants.find(x => x.id === state.currentUser.id);
+            if (p) {
+                p.status = 'Selesai';
+                p.score = score;
+                p.progress = Object.keys(state.answers).length;
+                p.answers = { ...state.answers };
+                p.submittedAt = submittedAt;
+                p.camera = 'Offline';
+                p.timeLeft = '00:00';
+            }
+
+            state.lastResult = { correct, score, pct, byDomain, submittedAt, isTimeout };
+            addAuditLog(state.currentUser.id, 'Peserta', `Finalisasi ujian (${isTimeout ? 'Waktu Habis' : 'Manual'}). Skor: ${score}/175 (${correct}/35 benar)`, 'info');
+            renderResultView();
+            showView('result');
+        }
+
+        function openParticipantOwnResult() {
+            const p = state.participants.find(x => x.id === state.currentUser.id);
+            if (!p) return;
+            state.answers = p.answers || {};
+            let correct = 0;
+            const byDomain = { Verbal: { c: 0, t: 12 }, Numerik: { c: 0, t: 14 }, Figural: { c: 0, t: 9 } };
+            state.questions.forEach(q => {
+                if (state.answers[q.id] === q.answer) {
+                    correct++;
+                    byDomain[q.domain].c++;
+                }
+            });
+            state.lastResult = { correct, score: correct * 5, pct: ((correct / 35) * 100).toFixed(1), byDomain, submittedAt: p.submittedAt || nowTime(), isTimeout: false };
+            renderResultView();
+            showView('result');
+        }
+
+        function renderResultView() {
+            const r = state.lastResult;
+            const passed = r.score >= 80;
+            let track = { name: 'Jalur Penguatan (< 60%)', desc: 'Perkuat prasyarat numerasi & logika di Bab 2 sebelum memperketat waktu.', cls: 'border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-300' };
+            if (parseFloat(r.pct) >= 80) track = { name: 'Jalur Cepat (≥ 80%)', desc: 'Target modul tercapai! Pertahankan akurasi dan tingkatkan efisiensi waktu pada soal menengah-lanjut.', cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' };
+            else if (parseFloat(r.pct) >= 60) track = { name: 'Jalur Reguler (60% – <80%)', desc: 'Ikuti program reguler 8 minggu dan tambahkan porsi latihan pada ranah dengan persentase terendah.', cls: 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300' };
+
+            document.getElementById('result-container').innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Bukti Pengumpulan Ujian</span>
+                        <h2 class="font-heading font-bold text-2xl text-slate-900 dark:text-white">${esc(state.currentUser.name)} (${state.currentUser.id})</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Waktu Kumpul: ${r.submittedAt} • Paket: Tes Diagnostik TIU (35 Soal)</p>
+                    </div>
+                    <span class="px-4 py-2 rounded-2xl text-xs font-bold ${passed ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'}">
+                        ${passed ? 'Memenuhi Ambang Batas (≥ 80)' : 'Belum Memenuhi Ambang Batas (80)'}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs text-slate-500 block">Skor TIU (5 × Benar)</span>
+                        <strong class="font-heading text-3xl text-emerald-600 dark:text-emerald-400">${r.score}</strong>
+                        <span class="text-xs text-slate-400"> / 175</span>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs text-slate-500 block">Jawaban Benar</span>
+                        <strong class="font-heading text-3xl text-cyan-600 dark:text-cyan-400">${r.correct}</strong>
+                        <span class="text-xs text-slate-400"> / 35 Soal</span>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs text-slate-500 block">Persentase Capaian</span>
+                        <strong class="font-heading text-3xl text-amber-500">${r.pct}%</strong>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    ${Object.entries(r.byDomain).map(([dom, v]) => `
+                        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <span class="font-bold">${dom}</span>
+                            <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">${v.c}/${v.t} (${Math.round((v.c / v.t) * 100)}%)</span>
+                        </div>`).join('')}
+                </div>
+
+                <div class="p-4 rounded-2xl border ${track.cls} text-xs space-y-1">
+                    <div class="font-heading font-bold text-sm">Rekomendasi Jalur Belajar (Tabel 1.6): ${track.name}</div>
+                    <p>${track.desc}</p>
+                </div>
+
+                <div class="flex flex-wrap justify-between gap-2 pt-2">
+                    <button onclick="openParticipantAnswersModal('${state.currentUser.id}')" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="file-search" class="w-4 h-4"></i> Lihat Riwayat & Pembahasan
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="renderParticipantDashboard(); showView('participant');" class="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Dashboard Peserta</button>
+                        <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold">Keluar</button>
+                    </div>
+                </div>`;
+            lucide.createIcons();
+        }
+
+        /* =====================================================================
+           9. ADMIN, SUPER ADMIN & PROCTOR PORTAL (15 MENUS + TOKEN + RIWAYAT)
+           ===================================================================== */
+        const ADMIN_MENUS = [
+            { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+            { id: 'participants', label: 'Manajemen Peserta', icon: 'users' },
+            { id: 'bank', label: 'Bank Soal (35)', icon: 'database' },
+            { id: 'packages', label: 'Paket Ujian', icon: 'package' },
+            { id: 'schedule', label: 'Jadwal Ujian', icon: 'calendar' },
+            { id: 'monitoring_cam', label: 'Monitoring Kamera', icon: 'video' },
+            { id: 'monitoring_act', label: 'Monitoring Aktivitas', icon: 'activity' },
+            { id: 'proctors', label: 'Pengawas', icon: 'user-cog' },
+            { id: 'results', label: 'Hasil Ujian', icon: 'award' },
+            { id: 'item_analysis', label: 'Analisis Butir Soal', icon: 'bar-chart-3' },
+            { id: 'reports', label: 'Laporan', icon: 'file-spreadsheet' },
+            { id: 'audit', label: 'Audit Log', icon: 'shield-alert' },
+            { id: 'settings', label: 'Pengaturan', icon: 'settings' },
+            { id: 'account', label: 'Manajemen Akun', icon: 'user-circle' },
+            { id: 'logout', label: 'Logout', icon: 'log-out' }
+        ];
+
+        function renderAdminShell() {
+            document.getElementById('admin-role-label').textContent = state.currentUser.role;
+            const html = ADMIN_MENUS.map(m => {
+                const active = state.activeAdminMenu === m.id;
+                return `<button onclick="handleAdminMenuClick('${m.id}')" class="w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 font-semibold transition ${m.id === 'logout' ? 'text-rose-400 hover:bg-rose-500/10 mt-2' : (active ? 'bg-emerald-600 text-white shadow' : 'text-slate-300 hover:bg-navy-800 hover:text-white')}">
+                    <i data-lucide="${m.icon}" class="w-4 h-4 shrink-0"></i>
+                    <span class="truncate">${m.label}</span>
+                </button>`;
+            }).join('');
+            document.getElementById('admin-menu-list').innerHTML = html;
+            document.getElementById('admin-mobile-menu-list').innerHTML = html;
+            renderAdminSection(state.activeAdminMenu);
+            lucide.createIcons();
+        }
+
+        function handleAdminMenuClick(menuId) {
+            if (menuId === 'logout') { logout(); return; }
+            state.activeAdminMenu = menuId;
+            const mob = document.getElementById('admin-mobile-drawer');
+            if (!mob.classList.contains('hidden')) toggleAdminMobileMenu();
+            renderAdminShell();
+        }
+
+        function toggleAdminMobileMenu() {
+            document.getElementById('admin-mobile-drawer').classList.toggle('hidden');
+        }
+
+        // Reusable Token Control Card (Visible to Super Admin, Admin Ujian, and Pengawas)
+        function renderTokenControlWidget() {
+            const active = state.settings.tokenActive;
+            return `
+                <div class="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 rounded-2xl p-5 border ${active ? 'border-emerald-500/50' : 'border-amber-500/40'} flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${active ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                                ${active ? 'TOKEN AKTIF — TAMPIL DI LAMAN PESERTA' : 'TOKEN NONAKTIF — UJIAN TERKUNCI'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 pt-1">
+                            <span class="font-mono font-extrabold text-2xl tracking-widest text-white">${esc(state.settings.examToken)}</span>
+                            <button onclick="copyTextFallback('${esc(state.settings.examToken)}', 'Token ujian disalin!')" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-slate-800 text-cyan-400 text-xs font-semibold border border-slate-700 inline-flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Hanya Admin, Super Admin, & Pengawas yang dapat mengaktifkan atau mengacak token ujian.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="regenerateExamToken()" class="px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition">
+                            <i data-lucide="shuffle" class="w-4 h-4 text-cyan-400"></i> Acak Token
+                        </button>
+                        <button onclick="toggleExamTokenActive()" class="px-5 py-2.5 rounded-xl ${active ? 'bg-rose-600 hover:bg-rose-500' : 'bg-emerald-600 hover:bg-emerald-500'} text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transition">
+                            <i data-lucide="${active ? 'power-off' : 'power'}" class="w-4 h-4"></i> ${active ? 'Nonaktifkan Token' : 'Aktifkan Token Ujian'}
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        function toggleExamTokenActive() {
+            state.settings.tokenActive = !state.settings.tokenActive;
+            addAuditLog(state.currentUser.name, state.currentUser.role, `${state.settings.tokenActive ? 'Mengaktifkan' : 'Menonaktifkan'} token ujian (${state.settings.examToken})`, state.settings.tokenActive ? 'info' : 'warning');
+            showToast(state.settings.tokenActive ? `Token ${state.settings.examToken} AKTIF dan muncul di laman peserta!` : 'Token ujian dinonaktifkan.', state.settings.tokenActive ? 'success' : 'warning');
+            renderAdminSection(state.activeAdminMenu);
+        }
+
+        function regenerateExamToken() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let tok = 'TIU';
+            for (let i = 0; i < 5; i++) tok += chars[Math.floor(Math.random() * chars.length)];
+            state.settings.examToken = tok;
+            addAuditLog(state.currentUser.name, state.currentUser.role, `Mengacak token ujian baru: ${tok}`, 'info');
+            showToast(`Token baru dibuat: ${tok}`, 'success');
+            renderAdminSection(state.activeAdminMenu);
+        }
+
+        function renderAdminSection(menuId) {
+            const menuObj = ADMIN_MENUS.find(m => m.id === menuId) || ADMIN_MENUS[0];
+            document.getElementById('admin-page-title').textContent = menuObj.label;
+            const area = document.getElementById('admin-content-area');
+
+            const totalP = state.participants.length;
+            const activeP = state.participants.filter(p => p.status === 'Sedang Berlangsung').length;
+            const doneP = state.participants.filter(p => p.status === 'Selesai').length;
+            const lockedP = state.participants.filter(p => p.locked).length;
+            const camOn = state.participants.filter(p => p.camera === 'Online').length;
+            const totalViol = state.participants.reduce((a, b) => a + b.violations, 0);
+
+            if (menuId === 'dashboard') {
+                area.innerHTML = `
+                    ${renderTokenControlWidget()}
+                    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Total Peserta</span><div class="font-heading font-bold text-2xl text-white mt-1">${totalP}</div></div>
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Sedang Ujian</span><div class="font-heading font-bold text-2xl text-cyan-400 mt-1">${activeP}</div></div>
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Selesai</span><div class="font-heading font-bold text-2xl text-emerald-400 mt-1">${doneP}</div></div>
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Terkunci</span><div class="font-heading font-bold text-2xl text-rose-400 mt-1">${lockedP}</div></div>
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Kamera Online</span><div class="font-heading font-bold text-2xl text-emerald-400 mt-1">${camOn}</div></div>
+                        <div class="bg-navy-900 p-4 rounded-2xl border border-slate-800"><span class="text-[11px] text-slate-400">Pelanggaran</span><div class="font-heading font-bold text-2xl text-amber-400 mt-1">${totalViol}</div></div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        <div class="lg:col-span-7 bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3">
+                            <h2 class="font-heading font-bold text-sm text-white">Ringkasan Progres Peserta</h2>
+                            <div class="space-y-2.5 text-xs">
+                                ${state.participants.slice(0, 6).map(p => {
+                                    const pct = Math.round((p.progress / 35) * 100);
+                                    return `<div class="space-y-1">
+                                        <div class="flex justify-between">
+                                            <span class="font-semibold text-white">${esc(p.name)} <span class="text-slate-400 font-mono">(${p.id})</span></span>
+                                            <span class="text-cyan-400 font-bold">${p.progress}/35 (${pct}%)</span>
+                                        </div>
+                                        <div class="w-full h-2 bg-navy-950 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:${pct}%"></div></div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5 bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3">
+                            <h2 class="font-heading font-bold text-sm text-white">Notifikasi & Audit Terbaru</h2>
+                            <div class="space-y-2 max-h-64 overflow-y-auto text-xs">
+                                ${state.auditLogs.slice(0, 8).map(l => `
+                                    <div class="p-2.5 rounded-xl bg-navy-950 border border-slate-800">
+                                        <div class="flex justify-between text-[10px] text-slate-400"><span>${esc(l.actor)} (${l.role})</span><span class="font-mono">${l.time}</span></div>
+                                        <div class="mt-0.5 ${l.level === 'danger' ? 'text-rose-400' : (l.level === 'warning' ? 'text-amber-300' : 'text-slate-200')}">${esc(l.event)}</div>
+                                    </div>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'participants') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <h2 class="font-heading font-bold text-sm text-white">Daftar Peserta Terdaftar (${totalP})</h2>
+                            <button onclick="openAddParticipantModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Peserta
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="text-slate-400 border-b border-slate-800">
+                                    <tr><th class="py-2 px-3">No. Peserta</th><th class="py-2 px-3">Nama Lengkap</th><th class="py-2 px-3">Ruang</th><th class="py-2 px-3">Status</th><th class="py-2 px-3">Progress</th><th class="py-2 px-3 text-right">Aksi</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    ${state.participants.map(p => `
+                                        <tr class="hover:bg-navy-800/40">
+                                            <td class="py-2.5 px-3 font-mono text-cyan-400">${p.id}</td>
+                                            <td class="py-2.5 px-3 font-semibold text-white">${esc(p.name)}</td>
+                                            <td class="py-2.5 px-3">${p.room}</td>
+                                            <td class="py-2.5 px-3">${p.status}</td>
+                                            <td class="py-2.5 px-3">${p.progress}/35</td>
+                                            <td class="py-2.5 px-3 text-right space-x-1">
+                                                <button onclick="openParticipantAnswersModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 font-semibold">Riwayat</button>
+                                                <button onclick="adminResetParticipant('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 font-semibold">Reset</button>
+                                                <button onclick="adminDeleteParticipant('${p.id}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-400 font-semibold">Hapus</button>
+                                            </td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'bank') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <div>
+                                <h2 class="font-heading font-bold text-sm text-white">Bank Soal TIU Diagnostik (35 Butir — Bagian 1.5 PDF)</h2>
+                                <p class="text-xs text-slate-400">12 Verbal • 14 Numerik • 9 Figural SVG. Kunci jawaban tidak dikirim ke browser peserta sebelum finalisasi.</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="text-slate-400 border-b border-slate-800">
+                                    <tr><th class="py-2 px-3">No</th><th class="py-2 px-3">Ranah</th><th class="py-2 px-3">Subkategori</th><th class="py-2 px-3">Cuplikan Soal</th><th class="py-2 px-3">Kunci</th><th class="py-2 px-3 text-right">Preview</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    ${state.questions.map(q => `
+                                        <tr class="hover:bg-navy-800/40">
+                                            <td class="py-2.5 px-3 font-mono text-cyan-400">${q.id}</td>
+                                            <td class="py-2.5 px-3 font-semibold">${q.domain}</td>
+                                            <td class="py-2.5 px-3 text-slate-400">${q.sub}</td>
+                                            <td class="py-2.5 px-3 max-w-md truncate text-slate-200">${esc(q.text)}</td>
+                                            <td class="py-2.5 px-3 font-bold text-emerald-400">${q.answer}</td>
+                                            <td class="py-2.5 px-3 text-right">
+                                                <button onclick="previewQuestionModal(${q.id})" class="px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-slate-700 text-cyan-300 font-semibold">Lihat</button>
+                                            </td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'packages') {
+                area.innerHTML = `
+                    ${renderTokenControlWidget()}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-navy-900 rounded-2xl p-5 border border-emerald-500/40 space-y-2">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">AKTIF</span>
+                            <h3 class="font-heading font-bold text-base text-white">TES POTENSI DASAR — 35 SOAL</h3>
+                            <p class="text-xs text-slate-400">Durasi: ${state.settings.durationMinutes} Menit • Verbal (12), Numerik (14), Figural (9) • Bobot Benar = 5</p>
+                        </div>
+                        <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-2 opacity-75">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300">DRAFT</span>
+                            <h3 class="font-heading font-bold text-base text-white">SIMULASI SKD LENGKAP (TWK + TIU + TKP)</h3>
+                            <p class="text-xs text-slate-400">110 Soal • Durasi 100 Menit • Dijadwalkan pada Fase 3</p>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'schedule') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Jadwal & Gelombang Pelaksanaan</h2>
+                        <div class="p-4 rounded-xl bg-navy-950 border border-slate-800 flex flex-wrap justify-between gap-2">
+                            <div><strong class="text-white">Gelombang 1 — Sesi Pagi (Lab-A & Lab-B)</strong><div class="text-slate-400 mt-0.5">Paket: Tes Potensi Dasar (35 Soal) • Durasi 45 Menit</div></div>
+                            <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-bold self-center">Berlangsung</span>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'monitoring_cam') {
+                const colsClass = { 2: 'grid-cols-1 sm:grid-cols-2', 3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3', 4: 'grid-cols-2 lg:grid-cols-4' }[state.proctorGridCols] || 'grid-cols-3';
+                area.innerHTML = `
+                    ${renderTokenControlWidget()}
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h2 class="font-heading font-bold text-sm text-white">LIVE EXAM MONITORING CENTER (Mode Demo Fase 1)</h2>
+                                <p class="text-xs text-slate-400">Klik kartu peserta untuk detail intervensi pengawas & riwayat jawaban.</p>
+                            </div>
+                            <div class="flex gap-1.5 text-xs">
+                                ${[2, 3, 4].map(n => `<button onclick="state.proctorGridCols=${n}; renderAdminSection('monitoring_cam')" class="px-3 py-1.5 rounded-lg font-bold ${state.proctorGridCols === n ? 'bg-cyan-600 text-white' : 'bg-navy-800 text-slate-300'}">${n}×${n}</button>`).join('')}
+                            </div>
+                        </div>
+                        <div class="grid ${colsClass} gap-3.5">
+                            ${state.participants.map(p => {
+                                const border = p.locked || p.violations >= 3 ? 'border-rose-500/60' : (p.violations > 0 ? 'border-amber-500/60' : (p.camera === 'Online' ? 'border-emerald-500/40' : 'border-slate-800'));
+                                return `
+                                    <div onclick="openProctorDetailModal('${p.id}')" class="cursor-pointer bg-navy-950 rounded-2xl border ${border} overflow-hidden hover:scale-[1.01] transition">
+                                        <div class="aspect-video bg-slate-900 relative flex items-center justify-center">
+                                            <i data-lucide="${p.camera === 'Online' ? 'user' : 'video-off'}" class="w-10 h-10 ${p.camera === 'Online' ? 'text-emerald-400/60' : 'text-slate-600'}"></i>
+                                            <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${p.camera === 'Online' ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'}">${p.camera}</span>
+                                            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/60 text-white">${p.timeLeft}</span>
+                                            ${p.locked ? `<span class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold">TERKUNCI</span>` : ''}
+                                        </div>
+                                        <div class="p-3 text-xs space-y-1">
+                                            <div class="font-bold text-white truncate">${esc(p.name)}</div>
+                                            <div class="flex justify-between text-[11px] text-slate-400">
+                                                <span class="font-mono text-cyan-400">${p.id}</span>
+                                                <span>${p.room} • ${p.progress}/35</span>
+                                            </div>
+                                            <div class="flex justify-between text-[11px] pt-1">
+                                                <span class="${p.status === 'Selesai' ? 'text-emerald-400' : 'text-slate-300'}">${p.status}</span>
+                                                <span class="${p.violations > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}">Pelanggaran: ${p.violations}</span>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+            } else if (menuId === 'monitoring_act') {
+                area.innerHTML = `
+                    ${renderTokenControlWidget()}
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+                        <h2 class="font-heading font-bold text-sm text-white">Monitoring Aktivitas & Kontrol Sesi</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="text-slate-400 border-b border-slate-800">
+                                    <tr><th class="py-2 px-3">Peserta</th><th class="py-2 px-3">Status</th><th class="py-2 px-3">Progress</th><th class="py-2 px-3">Pelanggaran</th><th class="py-2 px-3 text-right">Intervensi</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    ${state.participants.map(p => `
+                                        <tr>
+                                            <td class="py-2.5 px-3"><div class="font-semibold text-white">${esc(p.name)}</div><div class="text-[10px] font-mono text-cyan-400">${p.id}</div></td>
+                                            <td class="py-2.5 px-3">${p.status}</td>
+                                            <td class="py-2.5 px-3">${p.progress}/35</td>
+                                            <td class="py-2.5 px-3 font-bold ${p.violations > 0 ? 'text-rose-400' : 'text-emerald-400'}">${p.violations}×</td>
+                                            <td class="py-2.5 px-3 text-right space-x-1">
+                                                <button onclick="openParticipantAnswersModal('${p.id}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 font-semibold">Riwayat</button>
+                                                <button onclick="adminSendWarning('${p.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-semibold">Peringatkan</button>
+                                                <button onclick="adminToggleLock('${p.id}')" class="px-2.5 py-1 rounded-lg ${p.locked ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'} font-semibold">${p.locked ? 'Buka Kunci' : 'Kunci'}</button>
+                                            </td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'proctors') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Daftar Akun Petugas & Pengawas</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            ${state.staffAccounts.map(s => `
+                                <div class="p-4 rounded-xl bg-navy-950 border border-slate-800 space-y-1">
+                                    <span class="text-[10px] font-bold uppercase text-amber-400">${s.role}</span>
+                                    <div class="font-bold text-white text-sm">${esc(s.name)}</div>
+                                    <div class="text-slate-400">Username: <span class="font-mono text-cyan-400">${s.username}</span> • ${s.room}</div>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+            } else if (menuId === 'results' || menuId === 'reports') {
+                const scored = state.participants.filter(p => p.score !== null);
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+                        <div class="flex flex-wrap justify-between items-center gap-3">
+                            <h2 class="font-heading font-bold text-sm text-white">${menuId === 'results' ? 'Rekapitulasi Hasil Ujian' : 'Pusat Laporan & Ekspor'}</h2>
+                            <div class="flex gap-2 no-print">
+                                <button onclick="exportReportCSV()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5"><i data-lucide="file-down" class="w-4 h-4"></i> Ekspor CSV</button>
+                                <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> Cetak / PDF</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="text-slate-400 border-b border-slate-800">
+                                    <tr>
+                                        <th class="py-2 px-3">No. Peserta</th>
+                                        <th class="py-2 px-3">Nama</th>
+                                        <th class="py-2 px-3">Ruang</th>
+                                        <th class="py-2 px-3">Status</th>
+                                        <th class="py-2 px-3">Skor TIU</th>
+                                        <th class="py-2 px-3">Ambang Batas (80)</th>
+                                        <th class="py-2 px-3 text-right no-print">Riwayat Jawaban</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    ${state.participants.map(p => {
+                                        const ansCount = p.answers ? Object.keys(p.answers).length : 0;
+                                        const hasData = p.status === 'Selesai' || ansCount > 0;
+                                        return `<tr class="hover:bg-navy-800/40 transition">
+                                            <td class="py-2.5 px-3 font-mono text-cyan-400">${p.id}</td>
+                                            <td class="py-2.5 px-3 font-semibold text-white">${esc(p.name)}</td>
+                                            <td class="py-2.5 px-3">${p.room}</td>
+                                            <td class="py-2.5 px-3">${p.status}</td>
+                                            <td class="py-2.5 px-3 font-bold text-emerald-400">${p.score !== null ? p.score + ' / 175' : '-'}</td>
+                                            <td class="py-2.5 px-3">${p.score !== null ? (p.score >= 80 ? '<span class="text-emerald-400 font-bold">Memenuhi</span>' : '<span class="text-rose-400 font-bold">Belum</span>') : '-'}</td>
+                                            <td class="py-2.5 px-3 text-right no-print">
+                                                ${hasData
+                                                    ? `<button onclick="openParticipantAnswersModal('${p.id}')" class="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 font-semibold inline-flex items-center gap-1.5 transition">
+                                                            <i data-lucide="file-search" class="w-3.5 h-3.5"></i> Lihat Riwayat
+                                                       </button>`
+                                                    : `<button onclick="openParticipantAnswersModal('${p.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-400 border border-slate-700 font-medium inline-flex items-center gap-1.5 transition">
+                                                            <i data-lucide="clock" class="w-3.5 h-3.5"></i> Belum Ada
+                                                       </button>`
+                                                }
+                                            </td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        ${scored.length === 0 ? '<p class="text-xs text-slate-400">Belum ada peserta selesai.</p>' : ''}
+                    </div>`;
+            } else if (menuId === 'item_analysis') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-4 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Analisis Butir Soal (Berdasarkan Jawaban Tersimpan)</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="text-slate-400 border-b border-slate-800">
+                                    <tr><th class="py-2 px-3">No</th><th class="py-2 px-3">Ranah</th><th class="py-2 px-3">Subkategori</th><th class="py-2 px-3">Menjawab Benar</th><th class="py-2 px-3">Indeks Kesukaran (P)</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    ${state.questions.slice(0, 15).map(q => {
+                                        const respondents = state.participants.filter(p => p.answers && p.answers[q.id]);
+                                        const right = respondents.filter(p => p.answers[q.id] === q.answer).length;
+                                        const pIdx = respondents.length ? (right / respondents.length).toFixed(2) : '-';
+                                        return `<tr><td class="py-2 px-3 font-mono text-cyan-400">${q.id}</td><td class="py-2 px-3">${q.domain}</td><td class="py-2 px-3 text-slate-400">${q.sub}</td><td class="py-2 px-3">${right}/${respondents.length}</td><td class="py-2 px-3 font-bold text-emerald-400">${pIdx}</td></tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'audit') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 space-y-3 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Audit Log Aktivitas Sistem (${state.auditLogs.length})</h2>
+                        <div class="space-y-2 max-h-[70vh] overflow-y-auto">
+                            ${state.auditLogs.map(l => `
+                                <div class="p-3 rounded-xl bg-navy-950 border border-slate-800 flex flex-wrap justify-between gap-2">
+                                    <div><span class="font-bold text-cyan-400">${esc(l.actor)}</span> <span class="text-slate-500">(${l.role})</span> — <span class="${l.level === 'danger' ? 'text-rose-400' : (l.level === 'warning' ? 'text-amber-300' : 'text-slate-200')}">${esc(l.event)}</span></div>
+                                    <span class="font-mono text-slate-500">${l.time}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+            } else if (menuId === 'settings') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 max-w-xl space-y-4 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Pengaturan Ujian & Keamanan</h2>
+                        <div class="space-y-3">
+                            <div><label class="block text-slate-400 mb-1">Nama Penyelenggara</label><input id="set-org" value="${esc(state.settings.orgName)}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="block text-slate-400 mb-1">Durasi Ujian (Menit)</label><input id="set-dur" type="number" value="${state.settings.durationMinutes}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
+                                <div><label class="block text-slate-400 mb-1">Batas Pelanggaran Tab</label><input id="set-viol" type="number" value="${state.settings.maxViolations}" class="w-full px-3.5 py-2 rounded-xl bg-navy-950 border border-slate-700 text-white"></div>
+                            </div>
+                            <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Simpan Pengaturan</button>
+                        </div>
+                    </div>`;
+            } else if (menuId === 'account') {
+                area.innerHTML = `
+                    <div class="bg-navy-900 rounded-2xl p-5 border border-slate-800 max-w-md space-y-3 text-xs">
+                        <h2 class="font-heading font-bold text-sm text-white">Profil Akun Aktif</h2>
+                        <div class="p-4 rounded-xl bg-navy-950 border border-slate-800 space-y-1.5">
+                            <div>Nama: <strong class="text-white">${esc(state.currentUser.name)}</strong></div>
+                            <div>Peran: <strong class="text-amber-400">${esc(state.currentUser.role)}</strong></div>
+                            <div>Username: <span class="font-mono text-cyan-400">${esc(state.currentUser.username)}</span></div>
+                        </div>
+                    </div>`;
+            }
+            lucide.createIcons();
+        }
+
+        /* =====================================================================
+           10. ADMIN ACTIONS & PARTICIPANT ANSWER HISTORY MODAL
+           ===================================================================== */
+        function openProctorDetailModal(pid) {
+            const p = state.participants.find(x => x.id === pid);
+            if (!p) return;
+            openModal({
+                title: `Detail Pemantauan: ${p.name} (${p.id})`,
+                icon: 'video',
+                iconClass: 'bg-cyan-500/20 text-cyan-400',
+                bodyHtml: `
+                    <div class="space-y-3 text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Ruang: <strong>${p.room}</strong></div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Status: <strong>${p.status}</strong></div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Progress: <strong>${p.progress}/35 Soal</strong></div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950">Pelanggaran: <strong class="text-rose-500">${p.violations}×</strong></div>
+                        </div>
+                        <p class="text-slate-500">Setiap tindakan pengawas dicatat otomatis ke Audit Log.</p>
+                    </div>`,
+                footerHtml: `
+                    <button onclick="closeModal(); openParticipantAnswersModal('${p.id}');" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs">Riwayat Jawaban</button>
+                    <button onclick="adminSendWarning('${p.id}'); closeModal();" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">Kirim Peringatan</button>
+                    <button onclick="adminToggleLock('${p.id}'); closeModal();" class="px-3.5 py-2 rounded-xl ${p.locked ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-bold text-xs">${p.locked ? 'Buka Kunci Sesi' : 'Kunci Sesi'}</button>
+                `
+            });
+        }
+
+        function openParticipantAnswersModal(pid, filter = 'all') {
+            const p = state.participants.find(x => x.id === pid);
+            if (!p) return;
+
+            if (filter === 'all' && state.currentUser && state.currentUser.role !== 'Peserta') {
+                addAuditLog(state.currentUser.name, state.currentUser.role, `Melihat riwayat jawaban peserta ${p.name} (${p.id})`, 'info');
+            }
+
+            const pAnswers = p.answers || {};
+            let correct = 0, wrong = 0, blank = 0;
+
+            const rows = state.questions.map(q => {
+                const userAns = pAnswers[q.id] || null;
+                let status = 'blank';
+                if (!userAns) blank++;
+                else if (userAns === q.answer) { correct++; status = 'correct'; }
+                else { wrong++; status = 'wrong'; }
+
+                const getOptLabel = (key) => {
+                    if (!key) return 'Tidak Dijawab (Kosong)';
+                    const opt = q.options.find(o => o.key === key);
+                    if (!opt) return key;
+                    return opt.label ? `${opt.key}. ${opt.label}` : `Pilihan ${opt.key} (Gambar Figural)`;
+                };
+
+                const getOptSvg = (key) => {
+                    if (!key) return '';
+                    const opt = q.options.find(o => o.key === key);
+                    return opt && opt.svg ? `<div class="mt-1.5">${opt.svg}</div>` : '';
+                };
+
+                return { q, userAns, status, userText: getOptLabel(userAns), keyText: getOptLabel(q.answer), userSvg: getOptSvg(userAns), keySvg: getOptSvg(q.answer) };
+            });
+
+            const filteredRows = filter === 'all' ? rows : rows.filter(r => r.status === filter);
+            const computedScore = correct * 5;
+            const totalAnswered = correct + wrong;
+
+            const filterBtn = (key, label, count) => {
+                const active = filter === key;
+                return `<button onclick="openParticipantAnswersModal('${p.id}', '${key}')" class="px-3 py-1.5 rounded-xl text-[11px] font-bold border transition ${active ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-100 dark:bg-navy-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-cyan-500'}">${label} (${count})</button>`;
+            };
+
+            const listHtml = totalAnswered === 0 && p.status === 'Belum Dimulai'
+                ? `<div class="p-6 rounded-2xl bg-slate-100 dark:bg-navy-950 border border-dashed border-slate-300 dark:border-slate-700 text-center space-y-1.5">
+                        <i data-lucide="file-clock" class="w-8 h-8 text-slate-400 mx-auto"></i>
+                        <p class="font-bold text-slate-700 dark:text-slate-200">Peserta Belum Memulai Ujian</p>
+                        <p class="text-xs text-slate-500">Belum ada riwayat jawaban yang tersimpan untuk ${esc(p.name)}.</p>
+                   </div>`
+                : `<div class="space-y-3">
+                    ${filteredRows.length === 0
+                        ? `<p class="text-center text-xs text-slate-400 py-6">Tidak ada soal pada kategori filter ini.</p>`
+                        : filteredRows.map(item => {
+                            const { q, status, userText, keyText, userSvg, keySvg } = item;
+                            const badge = status === 'correct'
+                                ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">BENAR (+5)</span>`
+                                : (status === 'wrong'
+                                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">SALAH (0)</span>`
+                                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/15 text-slate-500 dark:text-slate-400 border border-slate-500/30">KOSONG (0)</span>`);
+                            const cardBorder = status === 'correct'
+                                ? 'border-emerald-200 dark:border-emerald-900/70 bg-emerald-50/40 dark:bg-emerald-950/15'
+                                : (status === 'wrong'
+                                    ? 'border-rose-200 dark:border-rose-900/70 bg-rose-50/40 dark:bg-rose-950/15'
+                                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-navy-950/50');
+                            return `
+                                <div class="p-3.5 rounded-2xl border ${cardBorder} space-y-2.5 text-xs">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="font-heading font-bold text-slate-900 dark:text-white">No. ${q.id} • <span class="text-cyan-600 dark:text-cyan-400">${q.domain}</span> (${q.sub})</span>
+                                        ${badge}
+                                    </div>
+                                    <p class="text-slate-800 dark:text-slate-200 leading-relaxed">${esc(q.text)}</p>
+                                    ${q.stimulusSvg ? `<div class="p-2.5 rounded-xl bg-white border border-slate-200 flex justify-center overflow-x-auto">${q.stimulusSvg}</div>` : ''}
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div class="p-2.5 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800">
+                                            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Jawaban Peserta</span>
+                                            <span class="font-bold ${status === 'correct' ? 'text-emerald-600 dark:text-emerald-400' : (status === 'wrong' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500')}">${esc(userText)}</span>
+                                            ${userSvg}
+                                        </div>
+                                        <div class="p-2.5 rounded-xl bg-white dark:bg-navy-900 border border-emerald-500/30">
+                                            <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block mb-0.5">Kunci Jawaban Seharusnya</span>
+                                            <span class="font-bold text-slate-900 dark:text-white">${esc(keyText)}</span>
+                                            ${keySvg}
+                                        </div>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-slate-100/90 dark:bg-navy-950 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300">
+                                        <strong class="text-cyan-600 dark:text-cyan-400">Penjelasan Jawaban:</strong> ${esc(q.explanation)}
+                                    </div>
+                                </div>`;
+                        }).join('')}
+                   </div>`;
+
+            openModal({
+                title: `Riwayat Jawaban — ${p.name} (${p.id})`,
+                icon: 'file-search',
+                iconClass: 'bg-cyan-500/15 text-cyan-500',
+                wide: true,
+                bodyHtml: `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                                <span class="text-[10px] text-slate-500 block">Skor Saat Ini</span>
+                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${p.score !== null ? p.score : computedScore} / 175</strong>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Benar</span>
+                                <strong class="font-heading text-base text-emerald-600 dark:text-emerald-400">${correct}</strong>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Salah</span>
+                                <strong class="font-heading text-base text-rose-600 dark:text-rose-400">${wrong}</strong>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                                <span class="text-[10px] text-slate-500 block">Kosong</span>
+                                <strong class="font-heading text-base text-slate-700 dark:text-slate-300">${blank}</strong>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                            <div class="flex flex-wrap gap-1.5">
+                                ${filterBtn('all', 'Semua', 35)}
+                                ${filterBtn('correct', 'Benar', correct)}
+                                ${filterBtn('wrong', 'Salah', wrong)}
+                                ${filterBtn('blank', 'Kosong', blank)}
+                            </div>
+                            <span class="text-[11px] text-slate-500">Status: <strong>${esc(p.status)}</strong> • Ruang ${esc(p.room)}</span>
+                        </div>
+
+                        ${listHtml}
+                    </div>`,
+                footerHtml: `<button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">Tutup Riwayat</button>`
+            });
+        }
+
+        function previewQuestionModal(qId) {
+            const q = state.questions.find(x => x.id === qId);
+            if (!q) return;
+            openModal({
+                title: `Preview Soal No. ${q.id} (${q.domain} — ${q.sub})`,
+                icon: 'eye',
+                iconClass: 'bg-cyan-500/15 text-cyan-400',
+                wide: true,
+                bodyHtml: `
+                    <div class="space-y-3 text-xs">
+                        <p class="text-sm font-semibold text-slate-900 dark:text-white">${esc(q.text)}</p>
+                        ${q.stimulusSvg ? `<div class="p-3 rounded-xl bg-white border border-slate-200 flex justify-center">${q.stimulusSvg}</div>` : ''}
+                        <div class="${q.domain === 'Figural' ? 'grid grid-cols-5 gap-2' : 'space-y-1.5'}">
+                            ${q.options.map(o => `<div class="p-2 rounded-xl border ${o.key === q.answer ? 'border-emerald-500 bg-emerald-500/10 font-bold' : 'border-slate-200 dark:border-slate-700'}">${o.svg ? `<div class="flex flex-col items-center gap-1"><span>${o.key}</span>${o.svg}</div>` : `${o.key}. ${esc(o.label)}`}</div>`).join('')}
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-slate-800">
+                            <strong class="text-emerald-500">Kunci: ${q.answer}</strong> — ${esc(q.explanation)}
+                        </div>
+                    </div>`
+            });
+        }
+
+        function openAddParticipantModal() {
+            const nextNum = String(state.participants.length + 1).padStart(3, '0');
+            openModal({
+                title: 'Tambah Peserta Baru',
+                icon: 'user-plus',
+                bodyHtml: `
+                    <div class="space-y-3 text-xs">
+                        <div><label class="block mb-1 font-semibold">Nomor Peserta</label><input id="new-p-id" value="2026-TIU-${nextNum}" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-300 dark:border-slate-700"></div>
+                        <div><label class="block mb-1 font-semibold">Nama Lengkap</label><input id="new-p-name" placeholder="Nama lengkap peserta" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-300 dark:border-slate-700"></div>
+                        <div><label class="block mb-1 font-semibold">Ruang Ujian</label><input id="new-p-room" value="Lab-A" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-navy-950 border border-slate-300 dark:border-slate-700"></div>
+                    </div>`,
+                footerHtml: `
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-navy-800 text-xs font-bold">Batal</button>
+                    <button onclick="saveNewParticipant()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">Simpan</button>`
+            });
+        }
+
+        function saveNewParticipant() {
+            const id = document.getElementById('new-p-id').value.trim();
+            const name = document.getElementById('new-p-name').value.trim();
+            const room = document.getElementById('new-p-room').value.trim();
+            if (!id || !name) { showToast('Nomor peserta dan nama wajib diisi.', 'warning'); return; }
+            state.participants.unshift({ id, name, room, status: 'Belum Dimulai', progress: 0, camera: 'Offline', net: 'Online', violations: 0, locked: false, score: null, timeLeft: `${state.settings.durationMinutes}:00`, answers: {} });
+            addAuditLog(state.currentUser.name, state.currentUser.role, `Menambahkan peserta baru ${name} (${id})`);
+            closeModal();
+            showToast(`Peserta ${name} ditambahkan.`, 'success');
+            renderAdminSection('participants');
+        }
+
+        function adminResetParticipant(pid) {
+            const p = state.participants.find(x => x.id === pid);
+            if (!p) return;
+            p.status = 'Belum Dimulai'; p.progress = 0; p.violations = 0; p.locked = false; p.score = null; p.answers = {}; p.timeLeft = `${state.settings.durationMinutes}:00`;
+            addAuditLog(state.currentUser.name, state.currentUser.role, `Mereset sesi peserta ${p.name} (${p.id})`, 'warning');
+            showToast(`Sesi ${p.name} berhasil direset.`, 'info');
+            renderAdminSection(state.activeAdminMenu);
+        }
+
+        function adminDeleteParticipant(pid) {
+            state.participants = state.participants.filter(x => x.id !== pid);
+            addAuditLog(state.currentUser.name, state.currentUser.role, `Menghapus peserta ${pid}`, 'warning');
+            showToast(`Peserta ${pid} dihapus.`, 'info');
+            renderAdminSection('participants');
+        }
+
+        function adminSendWarning(pid) {
+            const p = state.participants.find(x => x.id === pid);
+            if (!p) return;
+            addAuditLog(state.currentUser.name, state.currentUser.role, `Mengirim peringatan pengawas kepada ${p.name} (${p.id})`, 'warning');
+            showToast(`Peringatan terkirim ke ${p.name}.`, 'warning');
+        }
+
+        function adminToggleLock(pid) {
+            const p = state.participants.find(x => x.id === pid);
+            if (!p) return;
+            p.locked = !p.locked;
+            p.status = p.locked ? 'Terkunci' : 'Sedang Berlangsung';
+            addAuditLog(state.currentUser.name, state.currentUser.role, `${p.locked ? 'Mengunci' : 'Membuka kunci'} sesi ${p.name} (${p.id})`, 'warning');
+            showToast(`Sesi ${p.name} ${p.locked ? 'dikunci' : 'dibuka kembali'}.`, 'info');
+            renderAdminSection(state.activeAdminMenu);
+        }
+
+        function saveAdminSettings() {
+            state.settings.orgName = document.getElementById('set-org').value.trim() || state.settings.orgName;
+            state.settings.durationMinutes = Math.max(5, parseInt(document.getElementById('set-dur').value) || 45);
+            state.settings.maxViolations = Math.max(1, parseInt(document.getElementById('set-viol').value) || 3);
+            addAuditLog(state.currentUser.name, state.currentUser.role, 'Memperbarui pengaturan global ujian', 'info');
+            showToast('Pengaturan berhasil disimpan.', 'success');
+        }
+
+        function exportReportCSV() {
+            const header = ['No Peserta', 'Nama', 'Ruang', 'Status', 'Progress', 'Pelanggaran', 'Skor TIU'];
+            const rows = state.participants.map(p => [p.id, `"${p.name}"`, p.room, p.status, `${p.progress}/35`, p.violations, p.score ?? '-'].join(','));
+            const csv = [header.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'SMART_CBT_Hasil_Ujian_TIU.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Laporan CSV berhasil diunduh.', 'success');
+        }
+
+        function seedDemoParticipantAnswers() {
+            const wrongAlt = { A: 'B', B: 'C', C: 'D', D: 'E', E: 'A' };
+            state.participants.forEach(p => {
+                if (p.answers && Object.keys(p.answers).length > 0) return;
+                p.answers = {};
+                if (p.id === '2026-TIU-005') {
+                    // Rizky Ramadhan: Selesai, Skor 145 (29 benar, 6 salah)
+                    const wrongIds = [4, 11, 18, 22, 25, 31];
+                    state.questions.forEach(q => {
+                        p.answers[q.id] = wrongIds.includes(q.id) ? wrongAlt[q.answer] : q.answer;
+                    });
+                } else if (p.progress > 0) {
+                    state.questions.slice(0, p.progress).forEach((q, idx) => {
+                        p.answers[q.id] = (idx % 4 === 3) ? wrongAlt[q.answer] : q.answer;
+                    });
+                }
+            });
+        }
+
+        // Network status indicator
+        window.addEventListener('online', () => {
+            const el = document.getElementById('exam-net-badge');
+            if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online`;
+            showToast('Koneksi internet kembali online.', 'success');
+        });
+        window.addEventListener('offline', () => {
+            const el = document.getElementById('exam-net-badge');
+            if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Offline`;
+            showToast('Koneksi terputus! Jawaban disimpan sementara di perangkat.', 'warning');
+        });
+
+        window.onload = function () {
+            seedDemoParticipantAnswers();
+            lucide.createIcons();
+            setLoginPortal('peserta');
+        };
+    </script>
+</body>
+</html>
